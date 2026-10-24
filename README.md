@@ -1,6 +1,6 @@
 # AudiomothR
 
-[![R-CMD-check](https://github.com/ajcanepa/BioDigiAguasBurgos/actions/workflows/audiomothr-check.yaml/badge.svg)](https://github.com/ajcanepa/BioDigiAguasBurgos/actions/workflows/audiomothr-check.yaml)
+[![R-CMD-check](https://github.com/ajcanepa/AudiomothR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ajcanepa/AudiomothR/actions/workflows/R-CMD-check.yaml)
 
 Paquete de R para procesar las tarjetas de las grabadoras **AudioMoth**:
 
@@ -38,15 +38,14 @@ Desde GitHub (cualquier ordenador; requiere que la carpeta `AudiomothR/` esté s
 
 ```r
 install.packages("remotes")
-remotes::install_github("ajcanepa/BioDigiAguasBurgos", subdir = "AudiomothR")
+remotes::install_github("ajcanepa/AudiomothR")
 ```
 
-Desde una copia local del repositorio (con la carpeta `BioDigiAguasBurgos`
-como directorio de trabajo):
+Desde una copia local del repositorio (con el proyecto `AudiomothR.Rproj` abierto en RStudio):
 
 ```r
 install.packages("devtools")
-devtools::install("AudiomothR")
+devtools::install()
 ```
 
 Comprobar que todo está listo:
@@ -286,5 +285,5 @@ recorrido completo, paso a paso, con esta tarjeta de ejemplo.
 ## 16. Tests
 
 ```r
-devtools::test("AudiomothR")   # 89 comprobaciones; las de vídeo se omiten si no hay ffmpeg
+devtools::test()   # 89 comprobaciones; las de vídeo se omiten si no hay ffmpeg
 ```
