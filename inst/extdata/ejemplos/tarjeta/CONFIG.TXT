@@ -1,0 +1,50 @@
+Device ID                       : FACADE0012345678
+Firmware                        : AudioMoth-Firmware-Basic (1.12.1)
+
+Device time                     : 2026-10-05 19:46:26 (UTC)
+
+Sample rate (Hz)                : 48000
+Gain                            : Medium
+
+Sleep duration (s)              : 240
+Recording duration (s)          : 60
+
+Location                         : 41.00°N 3.00°W (Configuration app)
+Sun recording mode              : Sunrise and sunset
+Sunrise - before, after (mins)  : 120, 120
+Sunset - before, after (mins)   : 120, 120
+Sunrise/sunset rounding (mins)  : 5
+
+First recording date            : 2026-10-06 (UTC)
+Last recording date             : 2026-10-30 (UTC)
+
+Filter                          : -
+
+Trigger type                    : -
+Threshold setting               : -
+Minimum trigger duration (s)    : -
+
+Enable LED                      : Yes
+Enable low-voltage cut-off      : Yes
+Enable battery level indication : Yes
+
+Always require acoustic chime   : No
+Also require location in chime  : -
+Use timezone from chime         : No
+Also adjust recording schedule  : -
+
+Recording preparation time (s)  : 2
+Use device ID in WAV file name  : Yes
+Use daily folder for WAV files  : Yes
+
+Disable 48Hz DC blocking filter : No
+Enable energy saver mode        : No
+Enable low gain range           : No
+
+Ignore external microphone      : No
+
+Enable magnetic switch          : No
+
+Enable GPS time setting         : No
+GPS fix before and after        : -
+GPS fix time (mins)             : -

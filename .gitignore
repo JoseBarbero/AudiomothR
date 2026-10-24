@@ -1,0 +1,11 @@
+.Rproj.user/
+.Rhistory
+.RData
+*.Rcheck/
+AudiomothR_*.tar.gz
+# Nunca subir grabaciones ni resultados reales, salvo los audios de ejemplo
+# del paquete (anonimizados, ubicación ficticia): inst/extdata/ejemplos/
+*.WAV
+*.wav
+*.mp4
+!inst/extdata/ejemplos/**
