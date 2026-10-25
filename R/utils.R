@@ -18,10 +18,28 @@ ruta_paquete <- function(...) {
 }
 
 #' Ruta del ejecutable ffmpeg (error comprensible si no está)
+#'
+#' Además del PATH, busca en las carpetas habituales de cada sistema: RStudio
+#' abierto desde el Dock de macOS no ve el PATH de Homebrew, y en Windows
+#' ffmpeg suele instalarse sin añadirlo al PATH.
 #' @noRd
 ffmpeg_path <- function() {
-  ruta <- getOption("AudiomothR.ffmpeg", Sys.which("ffmpeg"))
-  if (!nzchar(ruta) || !file.exists(ruta)) {
+  opcion <- getOption("AudiomothR.ffmpeg")
+  if (!is.null(opcion)) {
+    if (!file.exists(opcion)) abortar("No existe {.file {opcion}} (opci\u00f3n {.code AudiomothR.ffmpeg}).")
+    return(opcion)
+  }
+  candidatos <- c(
+    Sys.which("ffmpeg"),
+    "/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/opt/local/bin/ffmpeg",
+    file.path(Sys.getenv("LOCALAPPDATA"), "Microsoft", "WinGet", "Links", "ffmpeg.exe"),
+    file.path(Sys.getenv("ProgramData"), "chocolatey", "bin", "ffmpeg.exe"),
+    file.path(Sys.getenv("USERPROFILE"), "scoop", "shims", "ffmpeg.exe"),
+    "C:/ffmpeg/bin/ffmpeg.exe", "C:/Program Files/ffmpeg/bin/ffmpeg.exe"
+  )
+  candidatos <- candidatos[nzchar(candidatos) & file.exists(candidatos) & !dir.exists(candidatos)]
+  ruta <- if (length(candidatos)) unname(candidatos[1]) else ""
+  if (!nzchar(ruta)) {
     abortar(
       "No se encuentra {.strong ffmpeg}, necesario para convertir audios y crear los v\u00eddeos.",
       "i" = "Inst\u00e1lelo (Linux: {.code sudo apt install ffmpeg}; Windows/macOS: {.url https://ffmpeg.org}) ",
@@ -81,4 +99,41 @@ semana_birdnet <- function(fecha) {
                                ifelse(mes == 12, 1L, mes + 1L)))
   dias_mes <- as.integer(siguiente - primero)
   (mes - 1L) * 4L + pmin(4L, as.integer(ceiling(dia * 4 / dias_mes)))
+}
+
+#' Comprueba qué necesita AudiomothR y qué está instalado
+#'
+#' Indica, para cada requisito, si está disponible y cómo instalarlo si no:
+#' ffmpeg (obligatorio), birdnetR (obligatorio; la primera vez instala
+#' Python y el modelo) y, para el informe en PDF, Quarto, knitr y rmarkdown,
+#' y los paquetes del mapa (maptiles, sf y terra).
+#'
+#' @return Invisiblemente, un vector lógico con nombre: `TRUE` si el
+#'   requisito está disponible.
+#' @examples
+#' comprobar_requisitos()
+#' @export
+comprobar_requisitos <- function() {
+  ruta <- function(f) tryCatch(f(), error = function(e) NA_character_)
+  ffmpeg <- ruta(ffmpeg_path)
+  quarto <- ruta(quarto_path)
+  hay <- function(p) requireNamespace(p, quietly = TRUE)
+  ok <- c(ffmpeg = !is.na(ffmpeg), birdnetR = hay("birdnetR"),
+          quarto = !is.na(quarto), knitr_rmarkdown = hay("knitr") && hay("rmarkdown"),
+          mapa = hay("maptiles") && hay("sf") && hay("terra"))
+  linea <- function(si, texto_si, texto_no) if (si) c("v" = texto_si) else c("x" = texto_no)
+  cli::cli_h2("Requisitos de AudiomothR")
+  cli::cli_bullets(c(
+    linea(ok[["ffmpeg"]], "ffmpeg: {.file {ffmpeg}}",
+          "ffmpeg: no encontrado (obligatorio). Linux: {.code sudo apt install ffmpeg}; macOS: {.code brew install ffmpeg}; Windows: {.code winget install ffmpeg}. O ind\u00edquelo con {.code options(AudiomothR.ffmpeg = \"/ruta/a/ffmpeg\")}."),
+    linea(ok[["birdnetR"]], "birdnetR {utils::packageVersion('birdnetR')} (la primera vez instala Python y el modelo de BirdNET)",
+          "birdnetR: no instalado (obligatorio). {.code install.packages(\"birdnetR\")}"),
+    linea(ok[["quarto"]], "Quarto (informe en PDF): {.file {quarto}}",
+          "Quarto: no encontrado (solo para {.fn crear_informe}). Viene con RStudio y Positron, o {.url https://quarto.org}."),
+    linea(ok[["knitr_rmarkdown"]], "knitr y rmarkdown (informe en PDF)",
+          "knitr o rmarkdown: no instalados (solo para {.fn crear_informe}). {.code install.packages(c(\"knitr\", \"rmarkdown\"))}"),
+    linea(ok[["mapa"]], "maptiles, sf y terra (mapa del informe sobre OpenStreetMap)",
+          "maptiles, sf o terra: no instalados (opcionales; sin ellos el mapa no tiene fondo). {.code install.packages(c(\"maptiles\", \"sf\", \"terra\"))}")
+  ))
+  invisible(ok)
 }

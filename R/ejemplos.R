@@ -12,8 +12,13 @@
 #' @param am Objeto `audiomoth` con detecciones, o data.frame de
 #'   [leer_detecciones()].
 #' @param especies Nombres científicos o comunes (sin distinguir
-#'   mayúsculas). Ver [resumen_especies()] para saber cuáles hay.
-#' @param n Número máximo de ejemplos por especie.
+#'   mayúsculas), o un vector con nombre `c("Cettia cetti" = 3, ...)` con el
+#'   número de ejemplos de cada especie (tal y como lo imprime
+#'   [especies_detectadas()], para copiarlo y pegarlo). Ver
+#'   [especies_detectadas()] para saber cuáles hay.
+#' @param n Número máximo de ejemplos por especie: un valor para todas o uno
+#'   por especie. No se usa si `especies` ya trae el número de cada una. Las
+#'   especies con `n = 0` se omiten.
 #' @param confianza_minima Umbral de confianza (estricto).
 #' @param sin_dudas Exigir que no haya otra especie en la misma ventana.
 #' @param una_por_grabacion Como mucho un ejemplo de cada grabación.
@@ -24,8 +29,10 @@ seleccionar_ejemplos <- function(am, especies, n = 3, confianza_minima = 0.85, s
                                  una_por_grabacion = TRUE) {
   d <- if (inherits(am, "audiomoth")) leer_detecciones(am) else am
   if (missing(especies) || length(especies) == 0) abortar("Indique al menos una especie en {.arg especies}.")
+  pedidos <- ejemplos_por_especie(especies, n)
   elegidas <- list()
-  for (e in especies) {
+  for (e in names(pedidos)) {
+    n <- pedidos[[e]]
     de <- d[filtrar_especies(d, e), , drop = FALSE]
     if (nrow(de) == 0) {
       cli::cli_warn("{.val {e}}: BirdNET no la ha detectado en esta grabadora.")
@@ -51,6 +58,96 @@ seleccionar_ejemplos <- function(am, especies, n = 3, confianza_minima = 0.85, s
   if (is.null(out)) return(data.frame())
   rownames(out) <- NULL
   out
+}
+
+#' Número de ejemplos de cada especie
+#'
+#' `especies` puede ser un vector con nombre `c("Cettia cetti" = 2, ...)`; si
+#' no, `n` es un valor para todas o uno por especie. Devuelve un vector con
+#' nombre (especie = n) sin las especies con n = 0.
+#' @noRd
+ejemplos_por_especie <- function(especies, n) {
+  if (is.numeric(especies)) {
+    if (is.null(names(especies)) || any(!nzchar(names(especies)))) {
+      abortar("Si {.arg especies} es num\u00e9rico, cada valor debe llevar el nombre de su especie.",
+              "i" = "Por ejemplo: {.code c(\"Cettia cetti\" = 3, \"Turdus merula\" = 1)}.")
+    }
+    n <- unname(especies)
+    especies <- names(especies)
+  } else if (!length(n) %in% c(1L, length(especies))) {
+    abortar("{.arg n} debe tener un valor o uno por especie ({length(especies)}), no {length(n)}.")
+  }
+  n <- rep_len(as.integer(n), length(especies))
+  if (anyNA(n) || any(n < 0)) abortar("El n\u00famero de ejemplos debe ser un entero \u2265 0.")
+  pedidos <- stats::setNames(n, especies)
+  pedidos[pedidos > 0]
+}
+
+#' Especies detectadas, listas para elegir ejemplos
+#'
+#' Resume las especies detectadas (como [resumen_especies()]) e imprime un
+#' vector `c("nombre científico" = n, ...)` listo para copiar, cambiar los
+#' `n` y pegar en [extraer_ejemplos()] o en el argumento `especies_ejemplo`
+#' de [procesar_audiomoth()]. El `n` propuesto es el número de ejemplos que
+#' cumplen los criterios de [seleccionar_ejemplos()] (confianza mayor que
+#' `confianza_ejemplos`, sin dudas y uno por grabación), como mucho `n_max`.
+#'
+#' La confianza de BirdNET es una puntuación, no la probabilidad de que la
+#' identificación sea correcta: sirve para ordenar las detecciones, pero solo
+#' escuchando los ejemplos se sabe si son correctas.
+#'
+#' @param x Objeto `audiomoth` con detecciones, lista de objetos `audiomoth`
+#'   (varias cajas) o data.frame de [leer_detecciones()].
+#' @param confianza_minima Solo detecciones con al menos esta confianza.
+#' @param confianza_ejemplos,sin_dudas Criterios de los ejemplos (los de
+#'   [seleccionar_ejemplos()]).
+#' @param n_max Máximo de ejemplos propuesto por especie.
+#' @return Invisiblemente, el resumen de [resumen_especies()] con la columna
+#'   `n_propuesto`.
+#' @examples
+#' d <- read.csv(system.file("extdata", "ejemplos", "detecciones_birdnet.csv",
+#'                           package = "AudiomothR"), encoding = "UTF-8")
+#' especies_detectadas(d, confianza_ejemplos = 0.5)
+#' @export
+especies_detectadas <- function(x, confianza_minima = 0.5, confianza_ejemplos = 0.85,
+                                sin_dudas = TRUE, n_max = 3) {
+  d <- if (is.data.frame(x)) x else do.call(rbind, lapply(como_cajas(x), leer_detecciones))
+  r <- resumen_especies(d, confianza_minima)
+  if (nrow(r) == 0) {
+    cli::cli_inform(c("!" = "Ninguna detecci\u00f3n alcanza una confianza de {confianza_minima}."))
+    return(invisible(r))
+  }
+  ok <- d$confianza > confianza_ejemplos & (!sin_dudas | as.logical(d$sin_dudas))
+  validas <- tapply(d$archivo[ok], d$nombre_cientifico[ok], function(a) length(unique(a)))
+  r$n_propuesto <- as.integer(pmin(n_max, validas[r$nombre_cientifico]))
+  r$n_propuesto[is.na(r$n_propuesto)] <- 0L
+
+  nombres <- formatC(sprintf("\"%s\"", r$nombre_cientifico), width = -max(nchar(r$nombre_cientifico) + 2))
+  coma <- ifelse(seq_len(nrow(r)) < nrow(r), ",", " ")
+  comentario <- sprintf("# %s \u00b7 %d detecci%s \u00b7 confianza m\u00e1x. %.2f, media %.2f",
+                        r$nombre_comun, r$detecciones, ifelse(r$detecciones == 1, "\u00f3n", "ones"),
+                        r$confianza_max, r$confianza_media)
+  cat(sprintf("# Especies con confianza \u2265 %g. n = ejemplos que cumplen los criterios\n", confianza_minima),
+      sprintf("# (confianza > %g%s, uno por grabaci\u00f3n), hasta %d. Cambie los n y p\u00e9guelo en\n",
+              confianza_ejemplos, if (sin_dudas) " y sin dudas" else "", n_max),
+      "# extraer_ejemplos(am, especies) o en procesar_audiomoth(especies_ejemplo = especies).\n",
+      "especies <- c(\n",
+      sprintf("  %s = %d%s  %s\n", nombres, r$n_propuesto, coma, comentario),
+      ")\n", sep = "")
+  if (all(r$n_propuesto == 0)) {
+    cli::cli_inform(c("i" = "Ninguna especie tiene ejemplos que cumplan los criterios: baje {.arg confianza_ejemplos} (y use la misma {.arg confianza_minima} en {.fn extraer_ejemplos})."))
+  }
+  invisible(r)
+}
+
+#' Lista de objetos `audiomoth` (una caja o varias)
+#' @noRd
+como_cajas <- function(x) {
+  if (inherits(x, "audiomoth")) x <- list(x)
+  if (!is.list(x) || length(x) == 0 || !all(vapply(x, inherits, logical(1), "audiomoth"))) {
+    abortar("Indique un objeto {.cls audiomoth} o una lista de ellos (ver {.fn leer_audiomoth}).")
+  }
+  unname(x)
 }
 
 #' Descarga ejemplos de las especies elegidas: audio, espectrograma y vídeo

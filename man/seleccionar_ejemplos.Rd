@@ -18,9 +18,14 @@ seleccionar_ejemplos(
 \code{\link[=leer_detecciones]{leer_detecciones()}}.}
 
 \item{especies}{Nombres científicos o comunes (sin distinguir
-mayúsculas). Ver \code{\link[=resumen_especies]{resumen_especies()}} para saber cuáles hay.}
+mayúsculas), o un vector con nombre \code{c("Cettia cetti" = 3, ...)} con el
+número de ejemplos de cada especie (tal y como lo imprime
+\code{\link[=especies_detectadas]{especies_detectadas()}}, para copiarlo y pegarlo). Ver
+\code{\link[=especies_detectadas]{especies_detectadas()}} para saber cuáles hay.}
 
-\item{n}{Número máximo de ejemplos por especie.}
+\item{n}{Número máximo de ejemplos por especie: un valor para todas o uno
+por especie. No se usa si \code{especies} ya trae el número de cada una. Las
+especies con \code{n = 0} se omiten.}
 
 \item{confianza_minima}{Umbral de confianza (estricto).}
 

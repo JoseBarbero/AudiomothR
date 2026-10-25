@@ -14,6 +14,7 @@ procesar_audiomoth(
   n_ejemplos = 3,
   confianza_ejemplos = 0.85,
   estilo_video = c("cursor", "desplazamiento"),
+  informe = FALSE,
   ...
 )
 }
@@ -34,13 +35,17 @@ defecto se elige con un diálogo (\code{\link[=seleccionar_carpeta]{seleccionar_
 \code{carpeta}.}
 
 \item{especies_ejemplo}{Especies (nombre científico o común) de las que
-extraer ejemplos. \code{NULL} = ninguna.}
+extraer ejemplos, o vector con nombre \code{c("Cettia cetti" = 3, ...)} con
+los ejemplos de cada una (ver \code{\link[=especies_detectadas]{especies_detectadas()}}). \code{NULL} = ninguna.}
 
-\item{n_ejemplos}{Ejemplos por especie.}
+\item{n_ejemplos}{Ejemplos por especie (uno para todas o uno por especie).}
 
 \item{confianza_ejemplos}{Confianza mínima (estricta) de los ejemplos.}
 
 \item{estilo_video}{\code{"cursor"} o \code{"desplazamiento"}.}
+
+\item{informe}{Crear además un informe en PDF con \code{\link[=crear_informe]{crear_informe()}}
+(necesita Quarto).}
 
 \item{...}{Otros argumentos para \code{\link[=analizar_birdnet]{analizar_birdnet()}}.}
 }
@@ -56,6 +61,7 @@ Encadena todos los pasos:
 \item 
 \item \code{\link[=extraer_ejemplos]{extraer_ejemplos()}}: audio, espectrograma y vídeo de las mejores
 detecciones de \code{especies_ejemplo} (si se indican).
+\item \code{\link[=crear_informe]{crear_informe()}}: informe en PDF (si \code{informe = TRUE}).
 }
 }
 \details{

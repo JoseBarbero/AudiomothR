@@ -20,7 +20,7 @@ test_that("usa la ubicación del CONFIG.TXT y exige coordenadas si no la hay", {
 })
 
 test_that("convierte a 48 kHz las grabaciones con otra frecuencia", {
-  skip_if(!nzchar(Sys.which("ffmpeg")), "ffmpeg no está instalado")
+  skip_if_no_ffmpeg()
   am <- suppressMessages(leer_audiomoth(crear_tarjeta(fs = 96000), coordenadas = c(42, -3)))
   am <- suppressWarnings(suppressMessages(preparar_audios(am)))
   ok <- !is.na(am$grabaciones$ruta_birdnet)

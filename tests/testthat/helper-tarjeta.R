@@ -70,3 +70,8 @@ detecciones_prueba <- function(am) {
   }
   AudiomothR:::combinar_detecciones(am, g, list(modelo = "BirdNET v2.4"))
 }
+
+skip_if_no_ffmpeg <- function() {
+  testthat::skip_if(inherits(try(AudiomothR:::ffmpeg_path(), silent = TRUE), "try-error"),
+                    "ffmpeg no está instalado")
+}

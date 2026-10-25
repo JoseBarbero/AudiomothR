@@ -6,7 +6,15 @@
 \alias{AudiomothR-package}
 \title{AudiomothR: Procesamiento Acústico de Grabaciones AudioMoth con BirdNET}
 \description{
-Lee las tarjetas de las grabadoras AudioMoth (CONFIG.TXT y subcarpetas diarias), prepara los audios y los analiza con BirdNET mediante 'birdnetR'. Guarda las detecciones en CSV, las convierte al formato de importación de Observation.org y extrae ejemplos de alta confianza de las especies elegidas, con su audio y un vídeo del espectrograma.
+Lee las tarjetas de las grabadoras 'AudioMoth' (Hill et al. 2018) \doi{10.1111/2041-210X.12955} ('CONFIG.TXT' y subcarpetas diarias), prepara los audios y los analiza con 'BirdNET' (Kahl et al. 2021) \doi{10.1016/j.ecoinf.2021.101236} mediante 'birdnetR'. Guarda las detecciones en CSV, las convierte al formato de importación de 'Observation.org' y extrae ejemplos de alta confianza de las especies elegidas, con su audio y un vídeo del espectrograma. Crea además un informe en PDF con 'Quarto' de una o varias grabadoras, con mapa, estado de las grabaciones y especies detectadas.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/ajcanepa/AudiomothR}
+  \item Report bugs at \url{https://github.com/ajcanepa/AudiomothR/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Antonio Canepa \email{ajcanepa@gmail.com}

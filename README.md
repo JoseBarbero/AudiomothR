@@ -30,11 +30,13 @@ Paquete de R para procesar las tarjetas de las grabadoras **AudioMoth**:
 | ~2,5 GB de disco | Sí | Entorno de Python de BirdNET y TensorFlow (en `~/.cache/R/reticulate`, fuera del proyecto) | Automático |
 | `seewave` | No | Si está instalado, se usa para calcular el espectrograma (si no, AudiomothR usa un cálculo propio equivalente) | `install.packages("seewave")`; en Linux antes: `sudo apt install libsndfile1-dev libfftw3-dev` |
 | `rstudioapi` o `tcltk` | No | Diálogo para elegir la carpeta | Incluidos con RStudio / R |
+| **Quarto ≥ 1.4**, `knitr`, `rmarkdown` | No | Informe en PDF (`crear_informe()`); no necesita LaTeX | Incluido en RStudio y Positron; si no, <https://quarto.org> |
+| `maptiles`, `sf`, `terra` | No | Mapa de las cajas sobre OpenStreetMap en el informe (sin ellos, mapa sin fondo) | `install.packages(c("maptiles", "sf", "terra"))` |
 | `testthat`, `readxl` | No | Tests | `install.packages(c("testthat", "readxl"))` |
 
 ## 2. Instalación
 
-Desde GitHub (cualquier ordenador; requiere que la carpeta `AudiomothR/` esté subida al repositorio):
+Desde GitHub:
 
 ```r
 install.packages("remotes")
@@ -52,7 +54,7 @@ Comprobar que todo está listo:
 
 ```r
 library(AudiomothR)
-Sys.which("ffmpeg")                         # no debe salir vacío
+comprobar_requisitos()                      # qué está instalado y qué falta
 birdnetR::birdnet_model_tflite()            # la 1.ª vez instala Python y el modelo (unos minutos)
 ```
 
@@ -65,8 +67,8 @@ am <- procesar_audiomoth(
   carpeta = "/ruta/a/la/tarjeta",                # o sin este argumento: se abre un diálogo
   coordenadas = "42°21'40.4\"N 3°46'46.2\"W",    # opcional: copiadas de Google Earth
   punto = "Arlanzón - Puente",                   # opcional
-  especies_ejemplo = c("Cettia cetti", "Mirlo Común"),
-  n_ejemplos = 3
+  especies_ejemplo = c("Cettia cetti" = 3, "Mirlo Común" = 1),   # ejemplos por especie
+  informe = TRUE                                 # opcional: informe en PDF (necesita Quarto)
 )
 ```
 
@@ -85,15 +87,25 @@ am <- leer_audiomoth("/ruta/a/la/tarjeta", coordenadas = "42.361234, -3.779512")
 am <- preparar_audios(am)
 am <- analizar_birdnet(am)
 
-# Qué especies hay y cuántas candidatas a ejemplo tiene cada una
-resumen_especies(am)
+# Qué especies hay: imprime un vector listo para copiar, cambiar los n y pegar
+especies_detectadas(am)
+#> especies <- c(
+#>   "Cettia cetti"            = 3,  # Cetia Ruiseñor · 41 detecciones · confianza máx. 0.97, media 0.71
+#>   "Troglodytes troglodytes" = 2,  # Chochín Paleártico · 12 detecciones · ...
+#> )
 
 # 4. Ejemplos (WAV + PNG + MP4) de las especies elegidas
-extraer_ejemplos(am, c("Cettia cetti", "Chochín Paleártico"), n = 3)
+especies <- c("Cettia cetti" = 3, "Troglodytes troglodytes" = 1)
+extraer_ejemplos(am, especies)
+extraer_ejemplos(am, c("Cettia cetti", "Chochín Paleártico"), n = c(3, 1))   # equivalente
 extraer_ejemplos(am, "Cettia cetti", estilo = "desplazamiento")
 
 # 5. CSV para Observation.org
 exportar_observation(am)
+
+# 6. Informe en PDF (una caja, o varias: un apartado por caja o todas juntas)
+crear_informe(am)
+crear_informe(list(am1, am2, am3), por_caja = FALSE, salida = "informe_rio")
 ```
 
 ### Retomar el trabajo otro día
@@ -116,6 +128,7 @@ am <- analizar_birdnet(am)     # solo analiza lo que falte; si no falta nada, so
 | Función | Qué hace | Devuelve |
 |---|---|---|
 | `procesar_audiomoth()` | Todo el flujo (pasos 1-5) en una orden | Objeto `audiomoth` |
+| `comprobar_requisitos()` | Indica qué requisitos (ffmpeg, birdnetR, Quarto...) están instalados y cómo instalar los que falten | Vector lógico |
 | `seleccionar_carpeta()` | Diálogo para elegir la carpeta de la tarjeta | Ruta |
 | `leer_audiomoth(carpeta, coordenadas, punto, zona_horaria, salida)` | Lee el `CONFIG.TXT`, la ubicación y los metadatos de todos los WAV; guarda el inventario | Objeto `audiomoth` (`am$config`, `am$ubicacion`, `am$grabaciones`) |
 | `leer_config(archivo)` | Lee solo un `CONFIG.TXT` | Lista con los ajustes |
@@ -124,11 +137,13 @@ am <- analizar_birdnet(am)     # solo analiza lo que falte; si no falta nada, so
 | `analizar_birdnet(am, confianza_minima, idioma, version, filtro_ubicacion, ...)` | Analiza con BirdNET y guarda el CSV de detecciones | `am` con `am$detecciones` |
 | `leer_detecciones(x)` | Lee las detecciones de un `am` o de un `AudioMoth_<ID>_detecciones.csv` | data.frame |
 | `resumen_especies(x, confianza_minima)` | Resumen por especie: detecciones, días, confianza máxima y media, candidatas a ejemplo | data.frame |
+| `especies_detectadas(x, confianza_minima, confianza_ejemplos, n_max)` | Imprime las especies detectadas como vector `c("especie" = n, ...)` listo para copiar y pegar en `extraer_ejemplos()` | Resumen con `n_propuesto` |
 | `seleccionar_ejemplos(am, especies, n, ...)` | Elige las mejores detecciones (sin crear archivos) | data.frame |
 | `extraer_ejemplos(am, especies, n, margen_s, estilo, ...)` | Crea el WAV, el PNG y el MP4 de cada ejemplo | Índice de ejemplos |
 | `imagen_espectrograma(wav, archivo, ...)` | Espectrograma PNG de cualquier WAV | Ruta |
 | `video_espectrograma(wav, archivo, estilo, ...)` | Vídeo MP4 del espectrograma de cualquier WAV, con su audio | Ruta |
 | `exportar_observation(am, confianza_minima, min_detecciones, ...)` | CSV de importación para Observation.org | data.frame exportado |
+| `crear_informe(cajas, por_caja, salida, ...)` | Informe en PDF (Quarto + Typst) de una o varias cajas: mapa, grabaciones, especies, actividad, ejemplos y Observation.org | Ruta del PDF |
 
 La ayuda completa de cada función está en R: `?analizar_birdnet`, `?exportar_observation`, etc.
 
@@ -186,6 +201,7 @@ Por defecto en `<carpeta de la tarjeta>/AudiomothR/` (se cambia con `salida`):
 | `ejemplos/<especie>/*.wav, *.png, *.mp4` | Recorte, espectrograma y vídeo de cada ejemplo |
 | `ejemplos/AudioMoth_<ID>_ejemplos.csv` | Índice de los ejemplos |
 | `birdnet/<día>/*.csv` | Resultado de BirdNET por grabación (permite continuar un análisis interrumpido; no lo borre) |
+| `informe/` | Carpeta Quarto del informe (`informe.qmd`, datos y figuras) y el PDF `Informe_AudioMoth_<ID>.pdf` (solo con `crear_informe()`) |
 | `audio_48k/` | Copias a 48 kHz mono (solo si la AudioMoth grabó a otra frecuencia; se pueden borrar al terminar) |
 
 ## 10. Observation.org
@@ -240,6 +256,9 @@ Las grabaciones a 250 kHz tardan más (primero se convierten a 48 kHz).
 | Mensaje / síntoma | Solución |
 |---|---|
 | `No se encuentra ffmpeg` | Instalar ffmpeg (ver Requisitos) o indicar su ruta: `options(AudiomothR.ffmpeg = "C:/ffmpeg/bin/ffmpeg.exe")` |
+| ffmpeg instalado pero no se encuentra (p. ej. RStudio abierto desde el Dock de macOS) | `comprobar_requisitos()` busca también en las carpetas habituales; si aun así no aparece, `options(AudiomothR.ffmpeg = "/opt/homebrew/bin/ffmpeg")` |
+| `No se encuentra Quarto` | Usar RStudio o Positron (lo incluyen), instalarlo desde <https://quarto.org> o indicar su ruta: `options(AudiomothR.quarto = "/ruta/a/quarto")` |
+| El mapa del informe sale sin fondo | Instalar `maptiles`, `sf` y `terra`, y comprobar la conexión a Internet |
 | `No hay ningún CONFIG.TXT` | Elegir la carpeta raíz de la tarjeta, no una subcarpeta de día |
 | `El CONFIG.TXT no incluye la ubicación` | Pasar `coordenadas = "..."` |
 | La primera ejecución de BirdNET tarda mucho | Es normal: instala Python y TensorFlow y descarga el modelo una sola vez |

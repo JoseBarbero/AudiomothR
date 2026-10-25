@@ -1,18 +1,23 @@
 Package: AudiomothR
 Title: Procesamiento Acústico de Grabaciones AudioMoth con BirdNET
-Version: 0.1.0
+Version: 0.2.0
 Authors@R:
     person(given = "Antonio",
            family = "Canepa",
            role = c("aut", "cre"),
            email = "ajcanepa@gmail.com")
-Description: Lee las tarjetas de las grabadoras AudioMoth (CONFIG.TXT y
-    subcarpetas diarias), prepara los audios y los analiza con BirdNET
-    mediante 'birdnetR'. Guarda las detecciones en CSV, las convierte al
-    formato de importación de Observation.org y extrae ejemplos de alta
-    confianza de las especies elegidas, con su audio y un vídeo del
-    espectrograma.
+Description: Lee las tarjetas de las grabadoras 'AudioMoth' (Hill et al.
+    2018) <doi:10.1111/2041-210X.12955> ('CONFIG.TXT' y subcarpetas
+    diarias), prepara los audios y los analiza con 'BirdNET' (Kahl et al.
+    2021) <doi:10.1016/j.ecoinf.2021.101236> mediante 'birdnetR'. Guarda
+    las detecciones en CSV, las convierte al formato de importación de
+    'Observation.org' y extrae ejemplos de alta confianza de las especies
+    elegidas, con su audio y un vídeo del espectrograma. Crea además un
+    informe en PDF con 'Quarto' de una o varias grabadoras, con mapa,
+    estado de las grabaciones y especies detectadas.
 License: GPL (>= 3)
+URL: https://github.com/ajcanepa/AudiomothR
+BugReports: https://github.com/ajcanepa/AudiomothR/issues
 Encoding: UTF-8
 Language: es
 Depends:
@@ -31,15 +36,19 @@ Imports:
     utils
 Suggests:
     knitr,
+    maptiles,
     readxl,
     rmarkdown,
     rstudioapi,
     seewave,
+    sf,
     tcltk,
+    terra,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 SystemRequirements: ffmpeg (conversión de audio y vídeos), Python (lo
-    instala birdnetR automáticamente con uv)
+    instala birdnetR automáticamente con uv), Quarto (>= 1.4; solo para el
+    informe en PDF, RStudio y Positron ya lo incluyen)
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.1.0

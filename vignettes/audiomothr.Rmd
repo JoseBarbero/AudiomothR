@@ -9,7 +9,7 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-ffmpeg_ok <- nzchar(Sys.which("ffmpeg")) || nzchar(getOption("AudiomothR.ffmpeg", ""))
+ffmpeg_ok <- !inherits(try(AudiomothR:::ffmpeg_path(), silent = TRUE), "try-error")
 ```
 
 Este documento recorre el flujo completo de **AudiomothR** con una tarjeta de
@@ -130,6 +130,15 @@ Ninguna detección supera 0,85, por lo que `candidatas_ejemplo` es 0 en
 todas las especies: para extraer ejemplos de esta tarjeta hay que bajar la
 confianza mínima, como se hace a continuación.
 
+Para elegir las especies de los ejemplos sin escribir los nombres a mano,
+`especies_detectadas()` imprime un vector listo para copiar, cambiar el
+número de ejemplos de cada especie y pegarlo en `extraer_ejemplos()` (o en
+el argumento `especies_ejemplo` de `procesar_audiomoth()`):
+
+```{r}
+especies_detectadas(am, confianza_ejemplos = 0.5)
+```
+
 ## 5. Ejemplo de audio, espectrograma y vídeo
 
 La mejor detección sin dudas es la del cetia ruiseñor (*Cettia cetti*,
@@ -166,19 +175,40 @@ obs[, c("date", "time", "scientific name", "lat", "lng", "is certain", "notes")]
 > facilita la identificación automática, pero **no sustituye la revisión de
 > una persona** antes de publicar un registro.
 
+## 7. Informe en PDF
+
+`crear_informe()` prepara una carpeta Quarto con todo lo necesario y la
+convierte en un PDF con el resumen del muestreo, el mapa de las cajas, el
+estado de las grabaciones (por día, problemas, batería y temperatura), las
+especies detectadas con su confianza y su actividad por día y por hora, los
+espectrogramas de los ejemplos y los registros para Observation.org.
+Necesita Quarto (≥ 1.4; RStudio y Positron ya lo incluyen), pero no LaTeX.
+
+```{r, eval = FALSE}
+crear_informe(am)                                   # una caja
+
+# Varias cajas: un apartado por caja (por_caja = TRUE) o todas juntas (FALSE)
+crear_informe(list(am1, am2, am3), por_caja = FALSE, salida = "informe_rio")
+```
+
+El mapa se dibuja sobre OpenStreetMap si están instalados `maptiles`, `sf` y
+`terra` y hay conexión a Internet; si no, se muestran solo los puntos. La
+carpeta del informe se puede editar (`informe.qmd`) y volver a convertir en
+PDF con `quarto render informe.qmd`.
+
 ## Todo en una orden: `procesar_audiomoth()`
 
 ```{r, eval = FALSE}
 am <- procesar_audiomoth(
   carpeta = carpeta_ejemplo,
   coordenadas = "41.00, -3.00",
-  especies_ejemplo = c("Cettia cetti", "Troglodytes troglodytes"),
-  n_ejemplos = 1,
-  confianza_ejemplos = 0.5
+  especies_ejemplo = c("Cettia cetti" = 1, "Troglodytes troglodytes" = 1),
+  confianza_ejemplos = 0.5,
+  informe = TRUE
 )
 ```
 
-Encadena los pasos 1 a 6 (necesita BirdNET real, por lo que tampoco se
+Encadena los pasos 1 a 7 (necesita BirdNET real, por lo que tampoco se
 ejecuta aquí). `procesar_audiomoth()` exporta a Observation.org con los
 criterios por defecto, que con esta tarjeta no producen ningún registro;
 para usar otros criterios basta con llamar después a
