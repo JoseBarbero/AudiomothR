@@ -1,6 +1,7 @@
 # AudiomothR
 
 [![R-CMD-check](https://github.com/ajcanepa/AudiomothR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ajcanepa/AudiomothR/actions/workflows/R-CMD-check.yaml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23646409.svg)](https://doi.org/10.5281/zenodo.23646409)
 
 Paquete de R para procesar las tarjetas de las grabadoras **AudioMoth**:
 
@@ -306,3 +307,13 @@ recorrido completo, paso a paso, con esta tarjeta de ejemplo.
 ```r
 devtools::test()   # 89 comprobaciones; las de vídeo se omiten si no hay ffmpeg
 ```
+
+## 17. Cómo citar
+
+Si usa AudiomothR, cite la versión empleada (`citation("AudiomothR")`):
+
+> Canepa-Oneto A (2026). *AudiomothR: Procesamiento acústico de grabaciones
+> AudioMoth con BirdNET*. Versión 0.2.0.
+> <https://doi.org/10.5281/zenodo.23646409>
+
+Cada versión publicada en GitHub se archiva en Zenodo con su propio DOI.

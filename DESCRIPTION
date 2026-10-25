@@ -2,9 +2,7 @@ Package: AudiomothR
 Title: Procesamiento Acústico de Grabaciones AudioMoth con BirdNET
 Version: 0.2.0
 Authors@R:
-    person(given = "Antonio",
-           family = "Canepa",
-           role = c("aut", "cre"),
+    person("Antonio", "Canepa-Oneto", role = c("aut", "cre"),
            email = "ajcanepa@gmail.com")
 Description: Lee las tarjetas de las grabadoras 'AudioMoth' (Hill et al.
     2018) <doi:10.1111/2041-210X.12955> ('CONFIG.TXT' y subcarpetas

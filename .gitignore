@@ -9,3 +9,6 @@ AudiomothR_*.tar.gz
 *.wav
 *.mp4
 !inst/extdata/ejemplos/**
+
+# Notas personales de seguimiento (no se suben)
+PENDIENTE.md

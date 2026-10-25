@@ -1,0 +1,40 @@
+# Metadatos de cita del software: los usan GitHub ("Cite this repository") y
+# Zenodo (autores de cada nueva versión archivada).
+# Para modificar la autoría basta con editar la lista `authors`; cada persona
+# admite además `orcid: "https://orcid.org/0000-0000-0000-0000"`,
+# `affiliation: "..."` y `email: "..."`. Mantener el mismo orden que en
+# Authors@R de DESCRIPTION.
+cff-version: 1.2.0
+message: "Si usa este software, cítelo con estos metadatos."
+title: "AudiomothR: Procesamiento acústico de grabaciones AudioMoth con BirdNET"
+type: software
+version: 0.2.0
+doi: 10.5281/zenodo.23646409
+date-released: 2026-10-25
+license: GPL-3.0-or-later
+repository-code: "https://github.com/ajcanepa/AudiomothR"
+authors:
+  - given-names: Antonio
+    family-names: Canepa-Oneto
+    email: ajcanepa@gmail.com
+    affiliation: "Departamento de Ingeniería Informática, Universidad de Burgos"
+  # Coautores pendientes de confirmar (activar en la próxima versión, en este
+  # orden, quitando el "#"; añadirlos también a Authors@R de DESCRIPTION):
+  # - given-names: Patricia
+  #   family-names: de la Fuente Gamero
+  # - given-names: José Antonio
+  #   family-names: Barbero-Aparicio
+  # - given-names: Claudia
+  #   family-names: Fernández-Ruiz
+  #   affiliation: "Departamento de Ingeniería Informática, Universidad de Burgos"
+  # - given-names: Alicia
+  #   family-names: Olivares
+  # - given-names: Raúl
+  #   family-names: Marticorena-Sánchez
+keywords:
+  - AudioMoth
+  - BirdNET
+  - passive acoustic monitoring
+  - citizen science
+  - Observation.org
+  - R

@@ -1,0 +1,14 @@
+# Cita del paquete: citation("AudiomothR"). Los autores se toman de
+# Authors@R (DESCRIPTION), de modo que solo hay que mantenerlos allí.
+autores <- eval(parse(text = meta$`Authors@R`))
+autores <- autores[vapply(autores, function(p) "aut" %in% p$role, logical(1))]
+
+bibentry(
+  bibtype = "Manual",
+  title = "{AudiomothR}: Procesamiento acústico de grabaciones {AudioMoth} con {BirdNET}",
+  author = autores,
+  year = "2026",
+  note = paste("R package version", meta$Version),
+  doi = "10.5281/zenodo.23646409",
+  url = "https://github.com/ajcanepa/AudiomothR"
+)
