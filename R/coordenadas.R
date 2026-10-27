@@ -69,6 +69,11 @@ parsear_coordenadas <- function(texto) {
       abortar("No se distingue la latitud de la longitud en {.val {original}}.",
               "i" = "Use N/S para la latitud y E/W (u O) para la longitud.")
     }
+    # Segundos sin minutos: faltan los símbolos ° ' " y la lectura no es fiable
+    if (any(vapply(partes, function(p) nzchar(p[5]) && !nzchar(p[4]), logical(1)))) {
+      abortar("No se ha podido interpretar {.val {original}}.",
+              "i" = "Separe grados, minutos y segundos con {.code \u00b0 ' \"}, p. ej. {.val 42\u00b021'40.4\"N 3\u00b046'46.2\"W}, o use grados decimales: {.val 42.361234, -3.779512}.")
+    }
     return(validar_coordenadas(valores[es_lat], valores[!es_lat], max(pasos), original))
   }
 

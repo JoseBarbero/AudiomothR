@@ -46,3 +46,12 @@ test_that("no pierde el signo si el hemisferio va delante, pegado o en palabras"
   expect_equal(parsear_coordenadas("42.361234N 3.779512W")$lon, -3.779512)
   expect_equal(parsear_coordenadas("https://www.google.com/maps?q=42.361234,-3.779512")$lon, -3.779512)
 })
+
+test_that("no acepta grados, minutos y segundos separados solo por espacios", {
+  for (x in c("42 21 40.4 N 3 46 46.2 W", "42 21 40.4N, 3 46 46.2W", "42 21.673 N 3 46.770 W")) {
+    expect_error(parsear_coordenadas(x), "interpretar")
+  }
+  # Con símbolos sigue funcionando
+  expect_equal(parsear_coordenadas("42°21'40.4\"N 3°46'46.2\"W")$lat, 42 + 21 / 60 + 40.4 / 3600, tolerance = 1e-6)
+  expect_equal(parsear_coordenadas("42°21.673'N, 3°46.770'W")$lon, -(3 + 46.770 / 60), tolerance = 1e-6)
+})
