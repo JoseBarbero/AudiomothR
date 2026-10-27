@@ -29,7 +29,9 @@
 parsear_coordenadas <- function(texto) {
   if (is.numeric(texto)) {
     if (length(texto) != 2) abortar("Indique las coordenadas como {.code c(latitud, longitud)}.")
-    return(validar_coordenadas(texto[1], texto[2], 1, texto))
+    # Precisión según los decimales, como con el texto (los ceros finales se pierden:
+    # 42.360 cuenta como 42.36)
+    return(validar_coordenadas(texto[1], texto[2], pasos_decimales(as.character(texto)), texto))
   }
   if (!is.character(texto) || length(texto) != 1 || is.na(texto) || !nzchar(trimws(texto))) {
     abortar("Las coordenadas deben ser un texto, p. ej. {.val 42.361234, -3.779512}.")

@@ -70,3 +70,10 @@ test_that("rechaza los enlaces que no traen las coordenadas", {
   }
   expect_equal(parsear_coordenadas("https://www.google.com/maps?q=42.361234,-3.779512")$lat, 42.361234)
 })
+
+test_that("la precisión de un vector numérico sale de sus decimales", {
+  expect_lte(parsear_coordenadas(c(42.361234, -3.779512))$precision_m, 1)
+  expect_equal(parsear_coordenadas(c(42.36, -3.78))$precision_m,
+               parsear_coordenadas("42.36, -3.78")$precision_m)  # igual que el texto: ~700 m
+  expect_gt(parsear_coordenadas(c(42, -3))$precision_m, 50000)  # enteros: decenas de km
+})
