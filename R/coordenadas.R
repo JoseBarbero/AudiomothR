@@ -47,6 +47,7 @@ parsear_coordenadas <- function(texto) {
   t <- gsub("[\u00ba\u02da]", "\u00b0", t)        # º y ˚ -> °
   t <- gsub("[\u2032\u2019\u00b4`]", "'", t)        # ′ ’ ´ -> '
   t <- gsub("(\u2033|\u201d|'')", "\"", t)          # ″ ” '' -> "
+  t <- gsub("[\u2212\u2013\u2014]", "-", t)          # − – — -> -
   t <- toupper(t)
   t <- gsub("\\b(LAT(ITUD|ITUDE)?|LON(G|GITUD|GITUDE)?|LNG)\\s*:?", " ", t)
 
