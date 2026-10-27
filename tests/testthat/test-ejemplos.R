@@ -39,3 +39,14 @@ test_that("el índice de ejemplos acumula las llamadas sucesivas sin repetir", {
   expect_setequal(indice$nombre_cientifico, c("Cettia cetti", "Turdus merula"))
   expect_equal(nrow(indice), 2)
 })
+
+test_that("los dos estilos de vídeo de un mismo ejemplo no se pisan", {
+  skip_if_no_ffmpeg()
+  am <- suppressMessages(leer_audiomoth(crear_tarjeta(), coordenadas = c(42.36, -3.78)))
+  am$detecciones <- detecciones_prueba(am)
+  a <- suppressMessages(extraer_ejemplos(am, "Cettia cetti", n = 1))
+  b <- suppressMessages(extraer_ejemplos(am, "Cettia cetti", n = 1, estilo = "desplazamiento"))
+  expect_false(a$mp4 == b$mp4)
+  expect_true(all(file.exists(c(a$mp4, b$mp4))))
+  expect_match(b$mp4, "_desplazamiento\\.mp4$")
+})

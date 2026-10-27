@@ -205,7 +205,9 @@ extraer_ejemplos <- function(am, especies, n = 3, confianza_minima = 0.85, sin_d
     imagen_espectrograma(sel$wav[i], sel$png[i], titulo = titulo, subtitulo = subtitulo,
                          marcas = marcas, ...)
     if (video) {
-      sel$mp4[i] <- file.path(carpeta, paste0(base, ".mp4"))
+      # El estilo va en el nombre (salvo el de por defecto) para que convivan los dos
+      sufijo <- if (estilo == "cursor") "" else paste0("_", estilo)
+      sel$mp4[i] <- file.path(carpeta, paste0(base, sufijo, ".mp4"))
       video_espectrograma(sel$wav[i], sel$mp4[i], titulo = titulo, subtitulo = subtitulo,
                           marcas = marcas, estilo = estilo, ...)
     }
