@@ -3,10 +3,16 @@
 Observation.org usa la Lista IOC de Aves del Mundo (https://www.worldbirdnames.org).
 
 - `ioc_15.2_aves.csv`: especies IOC v15.2 con nombre común en inglés y español.
-- `clements_a_ioc_15.2.csv`: nombres eBird/Clements v2025 (taxonomía de BirdNET)
-  que en IOC tienen otro nombre.
+- `clements_a_ioc_15.2.csv`: nombres científicos de BirdNET v2.4 (taxonomía
+  eBird/Clements de hacia 2021) que en IOC v15.2 tienen otro nombre. Columnas
+  `clements_name` (BirdNET), `ioc_name` (IOC) y `criterio`: «nombre inglés»
+  si se emparejó por el nombre común en inglés, o «manual» si se revisó a mano
+  (cambios de género, divisiones y uniones de especies).
 
-Generados con `data-raw/crear_taxonomia_ioc.R`.
+`clements_a_ioc_15.2.csv` se genera con `data-raw/crear_taxonomia_ioc.R` a partir
+de las etiquetas de BirdNET v2.4 y de `ioc_15.2_aves.csv`. El script lista las
+etiquetas que no son aves y las aves sin equivalencia clara en IOC, que quedan
+fuera de Observation.org.
 
 ## Licencia y cita
 

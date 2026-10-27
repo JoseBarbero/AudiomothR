@@ -47,3 +47,11 @@ test_that("avisa si la ubicación de las detecciones no es la actual", {
                  "no es la actual")
   expect_equal(obs$accuracy, 1L)
 })
+
+test_that("traduce a IOC los nombres de BirdNET v2.4 que han cambiado", {
+  t <- AudiomothR:::nombres_ioc(c("Corvus monedula", "Accipiter gentilis", "Bubulcus ibis", "Apus melba",
+                                   "Charadrius dubius", "Ixobrychus minutus", "Pica nuttalli", "Cettia cetti",
+                                   "Human vocal"))
+  expect_equal(t$ioc, c("Coloeus monedula", "Astur gentilis", "Ardea ibis", "Tachymarptis melba",
+                        "Thinornis dubius", "Botaurus minutus", "Pica nuttallii", "Cettia cetti", NA))
+})

@@ -6,3 +6,4 @@
 ^\.github$
 ^CITATION\.cff$
 ^PENDIENTE\.md$
+^data-raw$
