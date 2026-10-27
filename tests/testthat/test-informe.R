@@ -44,3 +44,16 @@ test_that("crea el informe en PDF de una caja y de varias", {
                                         mapa = FALSE, abrir = FALSE))
   expect_true(file.exists(pdf))
 })
+
+test_that("no borra los ejemplos si el informe va a la carpeta de resultados", {
+  skip_on_cran()
+  skip_if(inherits(try(AudiomothR:::quarto_path(), silent = TRUE), "try-error"), "Quarto no está instalado")
+  am <- suppressMessages(leer_audiomoth(crear_tarjeta(), coordenadas = c(42.36, -3.78)))
+  am$detecciones <- detecciones_prueba(am)
+  ej <- suppressWarnings(suppressMessages(extraer_ejemplos(am, "Cettia cetti", n = 1, confianza_minima = 0.5,
+                                                           sin_dudas = FALSE, video = FALSE)))
+  pdf <- suppressMessages(crear_informe(am, salida = am$salida, mapa = FALSE, abrir = FALSE))
+  expect_true(file.exists(pdf))
+  expect_true(all(file.exists(c(ej$wav, ej$png))))
+  expect_true(file.exists(file.path(am$salida, "ejemplos", "AudioMoth_2403750567C2A798_ejemplos.csv")))
+})

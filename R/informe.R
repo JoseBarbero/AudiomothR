@@ -97,7 +97,9 @@ crear_informe <- function(cajas, por_caja = TRUE, salida = NULL,
 #' @noRd
 datos_informe <- function(cajas, salida, confianza_minima) {
   etiquetas <- make.unique(vapply(cajas, function(am) am$punto, character(1)), sep = " ")
-  dir_ej <- file.path(salida, "ejemplos")
+  # Copia propia de los espectrogramas, con otro nombre que ejemplos/ para no
+  # borrar los de extraer_ejemplos() si el informe va a la carpeta de resultados
+  dir_ej <- file.path(salida, "figuras_ejemplos")
   unlink(dir_ej, recursive = TRUE)
   columnas_grab <- c("archivo", "carpeta_dia", "inicio_local", "fecha_local", "duracion_s",
                      "frecuencia_muestreo", "bateria_v", "temperatura_c", "valida", "problema")
@@ -117,7 +119,7 @@ datos_informe <- function(cajas, salida, confianza_minima) {
         ej <- NULL
       } else {
         dir.create(dir_ej, showWarnings = FALSE)
-        destino <- file.path("ejemplos", paste0(nombre_seguro(caja), "_", basename(ej$png)))
+        destino <- file.path("figuras_ejemplos", paste0(nombre_seguro(caja), "_", basename(ej$png)))
         file.copy(ej$png, file.path(salida, destino), overwrite = TRUE)
         ej$png <- destino
         ej$caja <- caja
