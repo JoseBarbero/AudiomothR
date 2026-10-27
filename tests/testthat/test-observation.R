@@ -67,3 +67,18 @@ test_that("avisa de las especies divididas en IOC, salvo si hay equivalencia pro
                                                                  equivalencias = c("Cecropis daurica" = "Cecropis rufula"))))
   expect_equal(obs$`scientific name`, "Cecropis rufula")
 })
+
+test_that("guarda una copia del CSV de Observation.org revisado antes de sustituirlo", {
+  am <- suppressMessages(leer_audiomoth(crear_tarjeta(), coordenadas = "42.361234, -3.779512"))
+  am$detecciones <- detecciones_prueba(am)
+  archivo <- file.path(am$salida, "obs.csv")
+  suppressMessages(exportar_observation(am, especies = "Cettia cetti", archivo = archivo))
+  expect_no_warning(suppressMessages(exportar_observation(am, especies = "Cettia cetti", archivo = archivo)))  # sin cambios
+  revisado <- readLines(archivo)
+  writeLines(c(revisado, revisado[2]), archivo)                    # «revisión» a mano
+  expect_warning(suppressMessages(exportar_observation(am, especies = "Cettia cetti", archivo = archivo)),
+                 "versión anterior")
+  copia <- setdiff(list.files(am$salida, "^obs_.*\\.csv$"), "obs.csv")
+  expect_length(copia, 1)
+  expect_equal(readLines(file.path(am$salida, copia)), c(revisado, revisado[2]))
+})

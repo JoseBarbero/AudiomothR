@@ -62,19 +62,26 @@ crear_informe <- function(cajas, por_caja = TRUE, salida = NULL,
   }
   salida <- normalizePath(salida, mustWork = FALSE)
   dir.create(salida, recursive = TRUE, showWarnings = FALSE)
-  plantilla <- ruta_paquete("informe")
-  file.copy(list.files(plantilla, full.names = TRUE), salida, overwrite = TRUE)
+  # La plantilla se prepara aparte; si en `salida` había una versión editada a
+  # mano, se guarda una copia antes de sustituirla
+  plantilla <- tempfile("plantilla_")
+  dir.create(plantilla)
+  file.copy(list.files(ruta_paquete("informe"), full.names = TRUE), plantilla)
 
   datos <- datos_informe(cajas, salida, confianza_minima)
   datos$por_caja <- por_caja && length(cajas) > 1
   datos$mapa <- mapa
   saveRDS(datos, file.path(salida, "datos_informe.rds"))
-  qmd <- file.path(salida, "informe.qmd")
+  qmd <- file.path(plantilla, "informe.qmd")
   texto <- readLines(qmd, encoding = "UTF-8")
   texto <- gsub("{{titulo}}", gsub("\"", "'", titulo), texto, fixed = TRUE)
   texto <- gsub("{{subtitulo}}", datos$subtitulo, texto, fixed = TRUE)
   texto <- gsub("{{fecha}}", format(Sys.Date()), texto, fixed = TRUE)
   writeLines(enc2utf8(texto), qmd, useBytes = TRUE)
+  for (f in list.files(plantilla, full.names = TRUE)) {
+    reemplazar_con_copia(f, file.path(salida, basename(f)), ignorar = if (basename(f) == "informe.qmd") "^date: ")
+  }
+  unlink(plantilla, recursive = TRUE)
 
   pdf <- if (length(cajas) == 1) sprintf("Informe_AudioMoth_%s.pdf", cajas[[1]]$config$device_id) else
     "Informe_AudioMoth.pdf"

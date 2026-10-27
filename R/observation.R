@@ -126,7 +126,10 @@ exportar_observation <- function(am, confianza_minima = 0.8, min_detecciones = 2
   }
 
   archivo <- archivo %||% archivo_salida(am, "observation")
-  escribir_csv(out, archivo)
+  # Si ya existía con otro contenido (p. ej. revisado a mano), se guarda una copia
+  temporal <- tempfile(fileext = ".csv")
+  escribir_csv(out, temporal)
+  reemplazar_con_copia(temporal, archivo)
   cli::cli_inform(c("v" = "{nrow(out)} registro{?s} ({length(unique(out$`scientific name`))} especies) para Observation.org en {.file {archivo}}.",
                     "i" = "Criterios: confianza \u2265 {confianza_minima}, \u2265 {min_detecciones} detecciones por especie y d\u00eda{if (solo_sin_dudas) ', solo detecciones sin dudas' else ''}."))
   invisible(out)

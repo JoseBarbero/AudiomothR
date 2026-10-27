@@ -57,3 +57,19 @@ test_that("no borra los ejemplos si el informe va a la carpeta de resultados", {
   expect_true(all(file.exists(c(ej$wav, ej$png))))
   expect_true(file.exists(file.path(am$salida, "ejemplos", "AudioMoth_2403750567C2A798_ejemplos.csv")))
 })
+
+test_that("guarda una copia de la plantilla del informe editada antes de sustituirla", {
+  skip_on_cran()
+  skip_if(inherits(try(AudiomothR:::quarto_path(), silent = TRUE), "try-error"), "Quarto no está instalado")
+  am <- suppressMessages(leer_audiomoth(crear_tarjeta(), coordenadas = c(42.36, -3.78)))
+  am$detecciones <- detecciones_prueba(am)
+  pdf <- suppressMessages(crear_informe(am, mapa = FALSE, abrir = FALSE))
+  dir <- dirname(pdf)
+  expect_no_warning(suppressMessages(crear_informe(am, mapa = FALSE, abrir = FALSE)))   # sin cambios
+  f <- file.path(dir, "funciones_informe.R")
+  writeLines(c(readLines(f), "# cambio propio"), f)
+  expect_warning(suppressMessages(crear_informe(am, mapa = FALSE, abrir = FALSE)), "versión anterior")
+  copia <- list.files(dir, "^funciones_informe_.*\\.R$", full.names = TRUE)
+  expect_length(copia, 1)
+  expect_true("# cambio propio" %in% readLines(copia))
+})

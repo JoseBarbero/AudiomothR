@@ -68,6 +68,31 @@ nombre_seguro <- function(x) {
   gsub("^_+|_+$", "", x)
 }
 
+#' Sustituye `destino` por `nuevo` (un archivo ya escrito, que se mueve). Si
+#' `destino` existía con otro contenido (p. ej. revisado o editado a mano),
+#' antes guarda una copia con la fecha y la hora y avisa. `ignorar`: patrón de
+#' líneas que no cuentan como cambio (p. ej. la fecha del informe).
+#' @noRd
+reemplazar_con_copia <- function(nuevo, destino, ignorar = NULL) {
+  if (file.exists(destino)) {
+    texto <- function(f) {
+      x <- readLines(f, warn = FALSE, encoding = "UTF-8")
+      if (is.null(ignorar)) x else x[!grepl(ignorar, x)]
+    }
+    if (!identical(texto(nuevo), texto(destino))) {
+      copia <- sprintf("%s_%s.%s", tools::file_path_sans_ext(destino), format(Sys.time(), "%Y-%m-%d_%H%M%S"),
+                       tools::file_ext(destino))
+      file.copy(destino, copia)
+      cli::cli_warn(c("{.file {basename(destino)}} ya exist\u00eda con otro contenido: se sustituye y la versi\u00f3n anterior se guarda en {.file {copia}}.",
+                      "i" = "Si la hab\u00eda revisado o editado a mano, est\u00e1 en esa copia."))
+    }
+  }
+  dir.create(dirname(destino), recursive = TRUE, showWarnings = FALSE)
+  file.copy(nuevo, destino, overwrite = TRUE)
+  unlink(nuevo)
+  invisible(destino)
+}
+
 #' Escribe un CSV en UTF-8, separado por comas y con punto decimal
 #' @noRd
 escribir_csv <- function(x, archivo) {
