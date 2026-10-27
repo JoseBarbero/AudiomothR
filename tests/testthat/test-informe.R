@@ -81,3 +81,15 @@ test_that("avisa si una caja no tiene detecciones legibles", {
   expect_warning(pdf <- suppressMessages(crear_informe(am, mapa = FALSE, abrir = FALSE)), "detecciones legibles")
   expect_true(file.exists(pdf))
 })
+
+test_that("el gráfico de batería no tumba el informe sin temperatura ni con un WAV sin fecha", {
+  skip_on_cran()
+  skip_if(inherits(try(AudiomothR:::quarto_path(), silent = TRUE), "try-error"), "Quarto no está instalado")
+  am <- suppressMessages(leer_audiomoth(crear_tarjeta(), coordenadas = c(42.36, -3.78)))
+  am$detecciones <- detecciones_prueba(am)
+  am$grabaciones$bateria_v <- 4.7
+  am$grabaciones$temperatura_c <- NA      # firmware sin temperatura
+  am$grabaciones$inicio_local[5] <- NA    # WAV sin fecha
+  pdf <- suppressMessages(crear_informe(am, mapa = FALSE, abrir = FALSE))
+  expect_true(file.exists(pdf))
+})

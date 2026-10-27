@@ -124,6 +124,9 @@ grafico_grabaciones_dia <- function(g) {
 hay_bateria <- function(g) any(is.finite(g$bateria_v)) || any(is.finite(g$temperatura_c))
 
 grafico_bateria <- function(g) {
+  # Solo grabaciones con fecha; un panel sin datos (los firmwares antiguos no
+  # guardan la temperatura) se dibuja vacío y lo indica
+  g <- g[!is.na(g$inicio_local), , drop = FALSE]
   g <- g[order(g$caja, g$inicio_local), , drop = FALSE]
   t <- as.POSIXct(g$inicio_local, tz = "UTC")
   cajas <- unique(g$caja)
@@ -132,7 +135,13 @@ grafico_bateria <- function(g) {
   for (v in c("bateria_v", "temperatura_c")) {
     estilo(c(4, 4, 1, 1))
     y <- g[[v]]
-    graphics::plot(range(t), range(y, na.rm = TRUE), type = "n", xaxt = "n", xlab = "",
+    if (!any(is.finite(y))) {
+      graphics::plot.new()
+      graphics::text(0.5, 0.5, sprintf("Sin datos de %s\nen las grabaciones", if (v == "bateria_v") "bater\u00eda" else "temperatura"),
+                     col = "grey40")
+      next
+    }
+    graphics::plot(range(t), range(y[is.finite(y)]), type = "n", xaxt = "n", xlab = "",
                    ylab = if (v == "bateria_v") "Bater\u00eda (V)" else "Temperatura (\u00b0C)")
     graphics::axis.POSIXct(1, t, format = "%d/%m")
     for (k in seq_along(cajas)) {
