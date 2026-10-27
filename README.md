@@ -122,7 +122,13 @@ am <- analizar_birdnet(am)     # solo analiza lo que falte; si no falta nada, so
 > parámetros de `analizar_birdnet()`). Si cambian, el filtro de especies de
 > BirdNET es otro y **se vuelve a analizar toda la tarjeta**. Para corregir
 > solo las coordenadas del CSV de Observation.org sin reanalizar, edite las
-> columnas `lat`, `lng` y `accuracy` del CSV.
+> columnas `lat`, `lng` y `accuracy` del CSV (`exportar_observation()` avisa
+> si las coordenadas actuales no son las del análisis).
+
+Varias tarjetas pueden compartir la misma carpeta de resultados (`salida`):
+la caché de BirdNET va por grabadora (`birdnet/<ID>/`), así que una caja no
+borra ni hereda los resultados de otra. Use una carpeta de resultados distinta
+para cada despliegue de una misma AudioMoth.
 
 ## 5. Referencia de funciones
 
@@ -153,7 +159,9 @@ La ayuda completa de cada función está en R: `?analizar_birdnet`, `?exportar_o
 AudioMoth solo guarda la ubicación en el `CONFIG.TXT` si se configuró en la
 aplicación, y con **dos decimales (~700 m)**. Por eso:
 
-1. Si se indica `coordenadas`, se usan esas.
+1. Si se indica `coordenadas`, se usan esas. Si quedan a más de 10 km de las
+   del `CONFIG.TXT`, se avisa (por si la latitud y la longitud están al revés o
+   son las de otra caja).
 2. Si no, se usa la del `CONFIG.TXT` (con un aviso de su poca precisión).
 3. Si tampoco hay, en una sesión interactiva se piden por consola; si no es
    interactiva, se produce un error que pide el argumento `coordenadas`.
@@ -170,14 +178,27 @@ aplicación, y con **dos decimales (~700 m)**. Por eso:
 | Coma decimal | `"42,361234 -3,779512"` |
 | Vector numérico | `c(42.361234, -3.779512)` |
 
+Sin hemisferio, primero va la latitud (sur y oeste en negativo). Se rechazan,
+con un error que explica el formato correcto, el hemisferio delante del número
+o escrito en palabras (`"N42.36 W3.78"`, `"Norte"`, `"Oeste"`), los grados,
+minutos y segundos sin los símbolos `° ' "` (`"42 21 40.4 N"`) y los enlaces
+de Google Maps que no traen las coordenadas (copie las coordenadas con clic
+derecho sobre el punto). El signo menos tipográfico (`−`) se acepta.
+
 La precisión (columna `accuracy` de Observation.org) se calcula a partir de
-los decimales; se puede fijar con `leer_audiomoth(precision_m = 10)`.
+los decimales, también con el vector numérico; se puede fijar con
+`leer_audiomoth(precision_m = 10)`.
 
 ## 7. Horas
 
 AudioMoth graba en **UTC**. Todas las fechas y horas de los CSV están en la
 zona de `zona_horaria` (por defecto `Europe/Madrid`, con el cambio de hora
 incluido); la columna `inicio_grabacion_utc` conserva la hora UTC original.
+
+Con umbral de amplitud o disparador por frecuencia, AudioMoth no guarda los
+silencios y el archivo se llama `...T.WAV`. `preparar_audios()` expande estos
+archivos a tiempo real (`expandidos/<ID>/`) antes de analizarlos, de modo que
+la duración y las horas de las detecciones son las reales.
 
 ## 8. Criterios
 
@@ -199,11 +220,16 @@ Por defecto en `<carpeta de la tarjeta>/AudiomothR/` (se cambia con `salida`):
 | `AudioMoth_<ID>_grabaciones.csv` | Inventario: archivo, día, hora UTC y local, duración, muestreo, batería, temperatura y problemas |
 | `AudioMoth_<ID>_detecciones.csv` | Todas las detecciones: archivo, fecha y hora local, inicio y fin (s), especie, confianza, `n_etiquetas_ventana`, `confianza_otra_max`, `sin_dudas`, coordenadas |
 | `AudioMoth_<ID>_observation.csv` | Importación para Observation.org |
-| `ejemplos/<especie>/*.wav, *.png, *.mp4` | Recorte, espectrograma y vídeo de cada ejemplo |
-| `ejemplos/AudioMoth_<ID>_ejemplos.csv` | Índice de los ejemplos |
-| `birdnet/<día>/*.csv` | Resultado de BirdNET por grabación (permite continuar un análisis interrumpido; no lo borre) |
+| `ejemplos/<especie>/*.wav, *.png, *.mp4` | Recorte, espectrograma y vídeo de cada ejemplo (el vídeo con `estilo = "desplazamiento"` termina en `_desplazamiento.mp4`) |
+| `ejemplos/AudioMoth_<ID>_ejemplos.csv` | Índice de los ejemplos (se van añadiendo los de cada llamada a `extraer_ejemplos()`) |
+| `birdnet/<ID>/<día>/*.csv` | Resultado de BirdNET por grabación (permite continuar un análisis interrumpido; no lo borre) |
 | `informe/` | Carpeta Quarto del informe (`informe.qmd`, datos y figuras) y el PDF `Informe_AudioMoth_<ID>.pdf` (solo con `crear_informe()`) |
-| `audio_48k/` | Copias a 48 kHz mono (solo si la AudioMoth grabó a otra frecuencia; se pueden borrar al terminar) |
+| `audio_48k/<ID>/` | Copias a 48 kHz mono (solo si la AudioMoth grabó a otra frecuencia; se pueden borrar al terminar) |
+| `expandidos/<ID>/` | Grabaciones con disparador (`...T.WAV`) expandidas a tiempo real |
+
+Si el CSV de Observation.org o los archivos de `informe/` se han editado a
+mano, al volver a generarlos se guarda antes una copia con la fecha y la hora
+en el nombre, y se avisa.
 
 ## 10. Observation.org
 
@@ -214,7 +240,7 @@ coordenadas decimales con punto), con estos valores:
 | Columna | Valor |
 |---|---|
 | `date` / `time` | Fecha local / hora de la primera detección del día |
-| `scientific name` | Nombre de la Lista IOC v15.2 (la de Observation.org). Los nombres de BirdNET (eBird/Clements) se traducen con una tabla de equivalencias; lo que no es un ave (voz humana, ruido…) se deja fuera con un aviso. Equivalencias propias con `equivalencias = c("Nombre BirdNET" = "Nombre IOC")` |
+| `scientific name` | Nombre de la Lista IOC v15.2 (la de Observation.org). Los nombres de BirdNET v2.4 se traducen con una tabla de equivalencias (`inst/extdata/taxonomia/`, generada con `data-raw/crear_taxonomia_ioc.R`); lo que no es un ave (voz humana, ruido…) se deja fuera con un aviso. Se avisa también de las especies divididas en IOC cuyo nombre puede ser el de otra población (p. ej. `Cecropis daurica`, que en la Península es `Cecropis rufula`). Equivalencias propias con `equivalencias = c("Nombre BirdNET" = "Nombre IOC")` |
 | `lat` / `lng` / `accuracy` | Ubicación de la grabadora y su precisión (m, máx. 1000) |
 | `number` | 1 |
 | `notes` | Siempre el mismo comentario fijo: `"ID mediante BirdNET <versión>"` (la versión de `analizar_birdnet()`) |
@@ -266,6 +292,8 @@ Las grabaciones a 250 kHz tardan más (primero se convierten a 48 kHz).
 | Aparecen especies de otros continentes | Comprobar que `filtro_ubicacion = TRUE` y que las coordenadas son correctas (latitud primero; oeste negativo) |
 | `0 ejemplos de 3 que cumplen los criterios` | La especie no supera 0,85 sin dudas; ver `resumen_especies()` o bajar `confianza_minima` / usar `sin_dudas = FALSE` |
 | Un nombre «sin correspondencia en la Lista IOC» | Si es un ave, añadir `equivalencias = c("Nombre BirdNET" = "Nombre IOC")` en `exportar_observation()` |
+| `WAV duplicado` | Hay copias de una misma grabación (p. ej. `... 2.WAV` del Finder o un conflicto de OneDrive): se analiza solo una; se pueden borrar las copias |
+| El informe no muestra detecciones de una caja | Ejecutar antes `analizar_birdnet()` con esa caja (el informe lo avisa) |
 
 ## 14. Origen del código y licencias
 
@@ -305,7 +333,7 @@ recorrido completo, paso a paso, con esta tarjeta de ejemplo.
 ## 16. Tests
 
 ```r
-devtools::test()   # 89 comprobaciones; las de vídeo se omiten si no hay ffmpeg
+devtools::test()   # más de 180 comprobaciones; las de conversión y vídeo se omiten sin ffmpeg, y las del informe sin Quarto
 ```
 
 ## 17. Cómo citar
