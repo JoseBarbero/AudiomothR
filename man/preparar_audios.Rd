@@ -15,6 +15,10 @@ preparar_audios(am)
 \description{
 BirdNET trabaja con audio mono a 48 kHz. Las grabaciones que ya cumplen
 esto se usan tal cual; las demás (p. ej. AudioMoth a 250 kHz o estéreo) se
-convierten con ffmpeg a \verb{<salida>/audio_48k/}. Las grabaciones ilegibles,
-vacías o de menos de 3 s se descartan (columna \code{problema}).
+convierten con ffmpeg a \verb{<salida>/audio_48k/}. Las grabaciones con
+disparador (archivos \code{T.WAV} del umbral de amplitud o de frecuencia) se
+expanden antes a \verb{<salida>/expandidos/}, reponiendo los silencios que el
+firmware no guarda, para que las horas de las detecciones sean las reales.
+Las grabaciones ilegibles, vacías o de menos de 3 s se descartan (columna
+\code{problema}).
 }

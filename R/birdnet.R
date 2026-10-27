@@ -14,8 +14,12 @@ frecuencia_birdnet <- 48000L
 #'
 #' BirdNET trabaja con audio mono a 48 kHz. Las grabaciones que ya cumplen
 #' esto se usan tal cual; las demás (p. ej. AudioMoth a 250 kHz o estéreo) se
-#' convierten con ffmpeg a `<salida>/audio_48k/`. Las grabaciones ilegibles,
-#' vacías o de menos de 3 s se descartan (columna `problema`).
+#' convierten con ffmpeg a `<salida>/audio_48k/`. Las grabaciones con
+#' disparador (archivos `T.WAV` del umbral de amplitud o de frecuencia) se
+#' expanden antes a `<salida>/expandidos/`, reponiendo los silencios que el
+#' firmware no guarda, para que las horas de las detecciones sean las reales.
+#' Las grabaciones ilegibles, vacías o de menos de 3 s se descartan (columna
+#' `problema`).
 #'
 #' @param am Objeto creado con [leer_audiomoth()].
 #' @return `am` con la columna `ruta_birdnet` en `am$grabaciones`.
@@ -23,6 +27,7 @@ frecuencia_birdnet <- 48000L
 preparar_audios <- function(am) {
   comprobar_audiomoth(am)
   g <- am$grabaciones
+  g <- expandir_grabaciones_twav(g, am$salida)
   g$ruta_birdnet <- ifelse(g$valida, g$ruta, NA_character_)
   convertir <- which(g$valida & (g$frecuencia_muestreo != frecuencia_birdnet | g$canales != 1))
   if (length(convertir)) {

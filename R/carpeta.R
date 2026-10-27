@@ -171,6 +171,10 @@ inventariar_wav <- function(carpeta, config, zona_horaria) {
   })
   cli::cli_progress_done(id = barra)
   meta <- do.call(rbind, filas)
+  # T.WAV (grabaciones con disparador): la duración real incluye los silencios
+  twav <- es_twav(basename(rutas)) & !is.na(meta$duracion_s)
+  meta$duracion_s[twav] <- round(vapply(rutas[twav], function(r) tryCatch(duracion_twav(r), error = function(e) NA_real_),
+                                        numeric(1)), 3)
   nombre <- parsear_nombre_audiomoth(basename(rutas))
 
   # Hora de inicio: la del comentario del WAV; si no, la del nombre (en la zona del CONFIG.TXT)
