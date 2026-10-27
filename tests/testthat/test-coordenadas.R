@@ -61,3 +61,12 @@ test_that("acepta el signo menos tipográfico y las rayas", {
     expect_equal(parsear_coordenadas(x)$lon, -3.779512)
   }
 })
+
+test_that("rechaza los enlaces que no traen las coordenadas", {
+  for (x in c("https://www.google.com/maps/place/42%C2%B021'40.4%22N+3%C2%B046'46.2%22W/@42.3612289,-3.7820749,17z",
+              "https://maps.app.goo.gl/5rTbQhGkUe1VsA",
+              "https://www.google.com/maps/@42.3612289,-3.7820749,17z")) {
+    expect_error(parsear_coordenadas(x), "enlace")
+  }
+  expect_equal(parsear_coordenadas("https://www.google.com/maps?q=42.361234,-3.779512")$lat, 42.361234)
+})

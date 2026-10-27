@@ -36,6 +36,14 @@ parsear_coordenadas <- function(texto) {
   }
   original <- texto
 
+  # Enlaces: solo vale el de búsqueda (?q=lat,lon); los de lugar o los cortos
+  # no traen el punto o lo traen codificado
+  if (grepl("^\\s*https?://", texto, ignore.case = TRUE) &&
+      !grepl("[?&]q=-?[0-9.]+,\\s*-?[0-9.]+", texto)) {
+    abortar("El texto es un enlace, no unas coordenadas.",
+            "i" = "En Google Maps, haga clic derecho sobre el punto y pulse las coordenadas para copiarlas, p. ej. {.val 42.361234, -3.779512}.")
+  }
+
   # Marca de posición de Google Earth (KML): longitud,latitud[,altitud]
   kml <- regmatches(texto, regexec("<coordinates>\\s*([^<]+)</coordinates>", texto))[[1]]
   if (length(kml)) {
