@@ -5,8 +5,9 @@
 # CC BY-NC-SA 4.0 (solo uso no comercial).
 #
 # Cada grabación se analiza una sola vez: el resultado se guarda en
-# <salida>/birdnet/<día>/<archivo>.csv, de modo que un análisis interrumpido
-# continúa donde se quedó.
+# <salida>/birdnet/<ID>/<día>/<archivo>.csv, de modo que un análisis
+# interrumpido continúa donde se quedó. La caché va por grabadora (<ID>, el del
+# CONFIG.TXT) para que varias cajas puedan compartir la carpeta de resultados.
 
 frecuencia_birdnet <- 48000L
 
@@ -27,11 +28,11 @@ frecuencia_birdnet <- 48000L
 preparar_audios <- function(am) {
   comprobar_audiomoth(am)
   g <- am$grabaciones
-  g <- expandir_grabaciones_twav(g, am$salida)
+  g <- expandir_grabaciones_twav(g, file.path(am$salida, "expandidos", am$config$device_id))
   g$ruta_birdnet <- ifelse(g$valida, g$ruta, NA_character_)
   convertir <- which(g$valida & (g$frecuencia_muestreo != frecuencia_birdnet | g$canales != 1))
   if (length(convertir)) {
-    destino <- file.path(am$salida, "audio_48k", g$carpeta_dia[convertir], g$archivo[convertir])
+    destino <- file.path(am$salida, "audio_48k", am$config$device_id, g$carpeta_dia[convertir], g$archivo[convertir])
     # Pendientes: sin convertir o convertidas a medias (duración distinta de la original)
     hecha <- vapply(seq_along(destino), function(k) {
       cab <- if (file.exists(destino[k])) leer_cabecera_wav(destino[k])
@@ -105,8 +106,11 @@ analizar_birdnet <- function(am, confianza_minima = 0.1, idioma = "es", version 
                      umbral_ubicacion = umbral_ubicacion, lat = am$ubicacion$lat,
                      lon = am$ubicacion$lon, solapamiento = solapamiento,
                      sensibilidad = sensibilidad)
-  dir_res <- file.path(am$salida, "birdnet")
+  dir_res <- file.path(am$salida, "birdnet", am$config$device_id)
   archivo_param <- file.path(dir_res, "parametros.rds")
+  if (!file.exists(archivo_param) && file.exists(file.path(am$salida, "birdnet", "parametros.rds"))) {
+    cli::cli_inform(c("i" = "La cach\u00e9 de BirdNET va ahora por grabadora ({.file birdnet/{am$config$device_id}}): los resultados de la carpeta {.file birdnet} anterior no se reutilizan."))
+  }
   if (file.exists(archivo_param) && !identical(readRDS(archivo_param), parametros)) {
     cli::cli_inform(c("i" = "Los par\u00e1metros han cambiado desde el \u00faltimo an\u00e1lisis: se analizar\u00e1 todo de nuevo."))
     reanalizar <- TRUE
@@ -288,7 +292,7 @@ resumen_especies <- function(detecciones, confianza_minima = 0.5) {
 }
 
 archivo_resultado <- function(am, g) {
-  file.path(am$salida, "birdnet", g$carpeta_dia, sub("\\.wav$", ".csv", g$archivo, ignore.case = TRUE))
+  file.path(am$salida, "birdnet", am$config$device_id, g$carpeta_dia, sub("\\.wav$", ".csv", g$archivo, ignore.case = TRUE))
 }
 
 comprobar_audiomoth <- function(am) {

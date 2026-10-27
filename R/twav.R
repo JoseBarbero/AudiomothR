@@ -116,13 +116,13 @@ expandir_twav <- function(origen, destino) {
   invisible(destino)
 }
 
-#' Expande los T.WAV válidos de `g` en <salida>/expandidos/ y apunta `ruta` al
-#' archivo expandido, que es el que usan BirdNET y los ejemplos
+#' Expande los T.WAV válidos de `g` en `carpeta` (<salida>/expandidos/<ID>) y
+#' apunta `ruta` al archivo expandido, que es el que usan BirdNET y los ejemplos
 #' @noRd
-expandir_grabaciones_twav <- function(g, salida) {
+expandir_grabaciones_twav <- function(g, carpeta) {
   k <- which(g$valida & es_twav(g$archivo))
   if (!length(k)) return(g)
-  destino <- file.path(salida, "expandidos", g$carpeta_dia[k], g$archivo[k])
+  destino <- file.path(carpeta, g$carpeta_dia[k], g$archivo[k])
   pendientes <- which(!file.exists(destino))
   cli::cli_inform("Expandiendo {length(k)} grabaci{?\u00f3n/ones} con disparador (T.WAV) a tiempo real ({length(pendientes)} pendiente{?s}).")
   for (j in pendientes) expandir_twav(g$ruta[k[j]], destino[j])

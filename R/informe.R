@@ -106,7 +106,7 @@ datos_informe <- function(cajas, salida, confianza_minima) {
     caja <- etiquetas[i]
     g <- am$grabaciones[, columnas_grab, drop = FALSE]
     d <- tryCatch(leer_detecciones(am), error = function(e) detecciones_vacias())
-    param <- file.path(am$salida, "birdnet", "parametros.rds")
+    param <- file.path(am$salida, "birdnet", am$config$device_id, "parametros.rds")
     param <- if (file.exists(param)) readRDS(param) else list(modelo = d$modelo[1])
 
     ej <- file.path(am$salida, "ejemplos", sprintf("AudioMoth_%s_ejemplos.csv", am$config$device_id))

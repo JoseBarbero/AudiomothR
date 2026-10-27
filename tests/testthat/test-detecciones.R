@@ -25,3 +25,32 @@ test_that("elige los ejemplos de alta confianza y sin dudas", {
   expect_warning(seleccionar_ejemplos(am, "Turdus merula"), "0 ejemplos")
   expect_warning(seleccionar_ejemplos(am, "Pica pica"), "no la ha detectado")
 })
+
+test_that("cada grabadora tiene su propia caché en una carpeta de resultados común", {
+  # BirdNET simulado: una detección por grabación, sin Python
+  local_mocked_bindings(
+    birdnet_model_tflite = function(...) NULL, birdnet_model_meta = function(...) NULL,
+    predict_species_at_location_and_time = function(...) data.frame(label = "Cettia cetti"),
+    predict_species_from_audio_file = function(...) {
+      data.frame(start = 0, end = 3, scientific_name = "Cettia cetti", common_name = "Cetia", confidence = 0.9)
+    },
+    .package = "birdnetR")
+  local_mocked_bindings(silenciar_python = function() NULL, restaurar_python = function() NULL)
+
+  a <- crear_tarjeta()
+  b <- crear_tarjeta()           # otra grabadora, en otro punto
+  cfg <- file.path(b, "CONFIG.TXT")
+  writeLines(sub("2403750567C2A798", "24F319046907C3A1", readLines(cfg)), cfg)
+  for (f in list.files(b, "\\.WAV$", recursive = TRUE, full.names = TRUE)) {
+    file.rename(f, sub("2403750567C2A798", "24F319046907C3A1", f))
+  }
+  sal <- tempfile()
+  am_a <- suppressWarnings(suppressMessages(analizar_birdnet(leer_audiomoth(a, coordenadas = "42.36, -3.78", salida = sal))))
+  am_b <- suppressWarnings(suppressMessages(analizar_birdnet(leer_audiomoth(b, coordenadas = "41.65, -4.72", salida = sal))))
+
+  ga <- am_a$grabaciones[am_a$grabaciones$valida, ]
+  expect_true(all(file.exists(AudiomothR:::archivo_resultado(am_a, ga))))   # la de A sigue ahí
+  expect_true(file.exists(file.path(sal, "birdnet", "2403750567C2A798", "parametros.rds")))
+  expect_true(file.exists(file.path(sal, "birdnet", "24F319046907C3A1", "parametros.rds")))
+  expect_equal(unique(am_b$detecciones$device_id), "24F319046907C3A1")
+})

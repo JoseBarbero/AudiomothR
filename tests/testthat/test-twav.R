@@ -28,7 +28,7 @@ test_that("el inventario y preparar_audios() usan el T.WAV expandido", {
 
   am <- suppressWarnings(suppressMessages(preparar_audios(am)))
   g <- am$grabaciones[am$grabaciones$archivo == "2403750567C2A798_20261010_070000T.WAV", ]
-  expect_equal(g$ruta, file.path(am$salida, "expandidos", "20261010", "2403750567C2A798_20261010_070000T.WAV"))
+  expect_equal(g$ruta, file.path(am$salida, "expandidos", "2403750567C2A798", "20261010", "2403750567C2A798_20261010_070000T.WAV"))
   expect_equal(g$ruta_birdnet, g$ruta)
   expect_equal(tuneR::readWave(g$ruta, header = TRUE)$samples, 12 + 256 * (187 + 1875 + 188))
 })
