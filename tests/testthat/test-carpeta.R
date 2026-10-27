@@ -19,9 +19,16 @@ test_that("usa la ubicación del CONFIG.TXT y exige coordenadas si no la hay", {
   expect_error(suppressMessages(leer_audiomoth(crear_tarjeta(ubicacion = FALSE))), "coordenadas")
 })
 
+test_that("avisa si las coordenadas quedan lejos de las del CONFIG.TXT", {
+  dir <- crear_tarjeta(ubicacion = TRUE)
+  expect_warning(suppressMessages(leer_audiomoth(dir, coordenadas = "-3.78, 42.36")), "km de las del CONFIG.TXT")
+  expect_warning(suppressMessages(leer_audiomoth(dir, coordenadas = "41.65, -4.72")), "km de las del CONFIG.TXT")
+  expect_no_warning(suppressMessages(leer_audiomoth(dir, coordenadas = "42.361234, -3.779512")))
+})
+
 test_that("convierte a 48 kHz las grabaciones con otra frecuencia", {
   skip_if_no_ffmpeg()
-  am <- suppressMessages(leer_audiomoth(crear_tarjeta(fs = 96000), coordenadas = c(42, -3)))
+  am <- suppressMessages(leer_audiomoth(crear_tarjeta(fs = 96000), coordenadas = c(42.36, -3.78)))
   am <- suppressWarnings(suppressMessages(preparar_audios(am)))
   ok <- !is.na(am$grabaciones$ruta_birdnet)
   expect_equal(sum(ok), 4)

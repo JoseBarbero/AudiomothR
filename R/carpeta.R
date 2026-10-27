@@ -97,12 +97,25 @@ leer_audiomoth <- function(carpeta = seleccionar_carpeta(), coordenadas = NULL, 
   invisible(am)
 }
 
+# Distancia de círculo máximo (km) entre dos puntos list(lat, lon)
+distancia_km <- function(a, b) {
+  r <- pi / 180
+  6371 * acos(min(1, sin(a$lat * r) * sin(b$lat * r) +
+                     cos(a$lat * r) * cos(b$lat * r) * cos((a$lon - b$lon) * r)))
+}
+
 #' Elige la ubicación: argumento > CONFIG.TXT > consola
 #' @noRd
 resolver_ubicacion <- function(coordenadas, config) {
   if (!is.null(coordenadas)) {
     u <- parsear_coordenadas(coordenadas)
     u$origen <- "argumento"
+    # Aviso si quedan lejos de la ubicación aproximada del CONFIG.TXT
+    c0 <- config$ubicacion
+    if (!is.null(c0) && distancia_km(u, c0) > 10) {
+      cli::cli_warn(c("Las coordenadas indicadas est\u00e1n a {round(distancia_km(u, c0))} km de las del CONFIG.TXT ({c0$lat}, {c0$lon}).",
+                      "i" = "Compruebe que son las de esta grabadora y que la latitud va primero."))
+    }
     return(u)
   }
   if (!is.null(config$ubicacion)) {
