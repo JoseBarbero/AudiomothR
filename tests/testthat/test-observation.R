@@ -33,3 +33,17 @@ test_that("deja fuera lo que no es un ave de la Lista IOC y valida los valores f
   expect_error(exportar_observation(am, method = "Escuchado"), "no es un valor válido")
   expect_equal(AudiomothR:::validar_valor_observation("counting method", "visto/sin contar"), "Visto/Sin contar")
 })
+
+test_that("avisa si la ubicación de las detecciones no es la actual", {
+  dir <- crear_tarjeta()
+  am <- suppressMessages(leer_audiomoth(dir, coordenadas = "42.361234, -3.779512"))
+  am$detecciones <- detecciones_prueba(am)
+  expect_no_warning(suppressMessages(exportar_observation(am, especies = "Cettia cetti", archivo = tempfile())))
+
+  # Misma tarjeta leída otro día con otra precisión: se exporta la del análisis y se avisa
+  am2 <- suppressMessages(leer_audiomoth(dir, coordenadas = "42.361234, -3.779512", precision_m = 10))
+  am2$detecciones <- am$detecciones
+  expect_warning(obs <- suppressMessages(exportar_observation(am2, especies = "Cettia cetti", archivo = tempfile())),
+                 "no es la actual")
+  expect_equal(obs$accuracy, 1L)
+})

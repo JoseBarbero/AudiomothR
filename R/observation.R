@@ -59,6 +59,12 @@ exportar_observation <- function(am, confianza_minima = 0.8, min_detecciones = 2
   if (!is_certain %in% c("True", "False")) abortar("{.arg is_certain} debe ser {.val True} o {.val False}.")
 
   d <- leer_detecciones(am)
+  # Se exporta la ubicación guardada al analizar; avisa si ya no es la actual
+  u <- am$ubicacion
+  if (nrow(d) && !isTRUE(all.equal(c(d$lat[1], d$lon[1], d$precision_m[1]), c(u$lat, u$lon, u$precision_m)))) {
+    cli::cli_warn(c("La ubicaci\u00f3n de las detecciones ({d$lat[1]}, {d$lon[1]}; \u00b1{d$precision_m[1]} m) no es la actual ({u$lat}, {u$lon}; \u00b1{u$precision_m} m); se exporta la de las detecciones.",
+                    "i" = "Para exportar la actual, vuelva a ejecutar {.fn analizar_birdnet} (si cambian las coordenadas, se reanaliza la tarjeta) o edite {.field lat}, {.field lng} y {.field accuracy} en el CSV."))
+  }
   d <- d[d$confianza >= confianza_minima, , drop = FALSE]
   if (solo_sin_dudas) d <- d[d$sin_dudas, , drop = FALSE]
   if (!is.null(especies)) d <- d[filtrar_especies(d, especies), , drop = FALSE]
