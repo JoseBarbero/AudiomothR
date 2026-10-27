@@ -118,7 +118,8 @@ resolver_ubicacion <- function(coordenadas, config) {
   }
   if (interactive()) {
     cli::cli_inform(c("!" = "El CONFIG.TXT no incluye la ubicaci\u00f3n de la grabadora.",
-                      "i" = "Copie la posici\u00f3n del punto en Google Earth (o Google Maps) y p\u00e9guela aqu\u00ed."))
+                      "i" = "Copie la posici\u00f3n del punto en Google Earth (o Google Maps) y p\u00e9guela aqu\u00ed.",
+                      " " = "Formato: {.val 42.361234, -3.779512} (latitud, longitud; sur y oeste en negativo) o {.val 42\u00b021'40.4\"N 3\u00b046'46.2\"W}."))
     texto <- readline("Coordenadas: ")
     u <- parsear_coordenadas(texto)
     u$origen <- "consola"

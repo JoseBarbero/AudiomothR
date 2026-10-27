@@ -72,6 +72,14 @@ parsear_coordenadas <- function(texto) {
     return(validar_coordenadas(valores[es_lat], valores[!es_lat], max(pasos), original))
   }
 
+  # Queda algún hemisferio sin interpretar (delante del número, pegado o en
+  # palabras): mejor parar que perder el signo
+  if (grepl("[NSEWO]\\s*-?[0-9]|[0-9]\\s*[\u00b0'\"]?\\s*[NSEWO](?![A-Z])|\\b(NORTE|SUR|ESTE|OESTE|NORTH|SOUTH|EAST|WEST)\\b",
+            t, perl = TRUE)) {
+    abortar("No se ha podido interpretar el hemisferio en {.val {original}}.",
+            "i" = "Escriba el hemisferio detr\u00e1s de cada n\u00famero, p. ej. {.val 42.361234N 3.779512W}, o use signos: {.val 42.361234, -3.779512}.")
+  }
+
   # Sin hemisferio: dos números decimales (latitud, longitud)
   numeros <- regmatches(t, gregexpr("-?[0-9]+(?:[.][0-9]+)?", t, perl = TRUE))[[1]]
   if (length(numeros) != 2 && !grepl(".", t, fixed = TRUE)) {

@@ -36,3 +36,13 @@ test_that("rechaza coordenadas ilegibles o fuera de rango", {
   expect_error(parsear_coordenadas("95.1, -3.2"), "fuera de rango")
   expect_error(parsear_coordenadas("42.1°N 3.2°S"), "latitud")
 })
+
+test_that("no pierde el signo si el hemisferio va delante, pegado o en palabras", {
+  for (x in c("N42.36123 W3.77951", "N 42.361234 W 3.779512", "42.361234N3.779512W",
+              "42.361234 Norte, 3.779512 Oeste", "42.361234 North, 3.779512 West")) {
+    expect_error(parsear_coordenadas(x), "hemisferio")
+  }
+  # Siguen funcionando el hemisferio detrás y una URL de Google Maps
+  expect_equal(parsear_coordenadas("42.361234N 3.779512W")$lon, -3.779512)
+  expect_equal(parsear_coordenadas("https://www.google.com/maps?q=42.361234,-3.779512")$lon, -3.779512)
+})
