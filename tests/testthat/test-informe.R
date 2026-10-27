@@ -73,3 +73,11 @@ test_that("guarda una copia de la plantilla del informe editada antes de sustitu
   expect_length(copia, 1)
   expect_true("# cambio propio" %in% readLines(copia))
 })
+
+test_that("avisa si una caja no tiene detecciones legibles", {
+  skip_on_cran()
+  skip_if(inherits(try(AudiomothR:::quarto_path(), silent = TRUE), "try-error"), "Quarto no está instalado")
+  am <- suppressMessages(leer_audiomoth(crear_tarjeta(), coordenadas = c(42.36, -3.78)))   # sin analizar
+  expect_warning(pdf <- suppressMessages(crear_informe(am, mapa = FALSE, abrir = FALSE)), "detecciones legibles")
+  expect_true(file.exists(pdf))
+})

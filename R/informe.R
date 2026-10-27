@@ -114,7 +114,14 @@ datos_informe <- function(cajas, salida, confianza_minima) {
     am <- cajas[[i]]
     caja <- etiquetas[i]
     g <- am$grabaciones[, columnas_grab, drop = FALSE]
-    d <- tryCatch(leer_detecciones(am), error = function(e) detecciones_vacias())
+    # Sin detecciones legibles (caja sin analizar, otra salida o CSV dañado): el
+    # informe sale igual, pero se avisa para no confundirlo con «0 especies»
+    d <- tryCatch(leer_detecciones(am), error = function(e) {
+      cli::cli_warn(c("No hay detecciones legibles de la caja {.val {caja}}: en el informe saldr\u00e1 sin detecciones.",
+                      "x" = "No se puede leer {.file {archivo_salida(am, 'detecciones')}}.",
+                      "i" = "Si no la ha analizado, ejecute antes {.fn analizar_birdnet}."))
+      detecciones_vacias()
+    })
     param <- file.path(am$salida, "birdnet", am$config$device_id, "parametros.rds")
     param <- if (file.exists(param)) readRDS(param) else list(modelo = d$modelo[1])
 
