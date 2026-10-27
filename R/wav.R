@@ -114,12 +114,15 @@ parsear_nombre_audiomoth <- function(nombre) {
 #'
 #' Ejemplo: "Recorded at 04:20:00 10/10/2026 (UTC) by AudioMoth 2403750567C2A798
 #' at medium gain while battery was 4.7V and temperature was 6.7C."
+#' Con deployment ID, "by AudioMoth <ID>" pasa a ser "during deployment <ID>".
 #' Cada dato se extrae por separado porque la frase cambia entre firmwares.
 #' @noRd
 parsear_comentario_audiomoth <- function(comentario) {
   vacio <- list(inicio_utc = as.POSIXct(NA, tz = "UTC"), device_id = NA_character_,
-                ganancia = NA_character_, bateria_v = NA_real_, temperatura_c = NA_real_)
-  if (is.null(comentario) || is.na(comentario) || !grepl("AudioMoth", comentario, fixed = TRUE)) {
+                ganancia = NA_character_, bateria_v = NA_real_, temperatura_c = NA_real_,
+                despliegue = FALSE)
+  if (is.null(comentario) || is.na(comentario) ||
+      !(grepl("AudioMoth", comentario, fixed = TRUE) || grepl("^Recorded at", comentario))) {
     return(vacio)
   }
   coger <- function(patron) {
@@ -136,6 +139,7 @@ parsear_comentario_audiomoth <- function(comentario) {
     ganancia = coger("at ([a-z -]+) gain"),
     # "4.7V", "less than 2.5V" o "greater than 4.9V": nos quedamos con el número
     bateria_v = suppressWarnings(as.numeric(coger("battery (?:state )?was (?:less than |greater than )?([0-9.]+)V"))),
-    temperatura_c = suppressWarnings(as.numeric(coger("temperature was (-?[0-9.]+)C")))
+    temperatura_c = suppressWarnings(as.numeric(coger("temperature was (-?[0-9.]+)C"))),
+    despliegue = grepl("during deployment", comentario, fixed = TRUE)
   )
 }

@@ -164,6 +164,7 @@ inventariar_wav <- function(carpeta, config, zona_horaria) {
       duracion_s = if (is.null(cab)) NA_real_ else round(cab$duracion_s, 3),
       inicio_comentario = com$inicio_utc,
       device_comentario = com$device_id,
+      despliegue = com$despliegue,
       bateria_v = com$bateria_v,
       temperatura_c = com$temperatura_c
     )
@@ -187,7 +188,9 @@ inventariar_wav <- function(carpeta, config, zona_horaria) {
     archivo = basename(rutas),
     carpeta_dia = basename(dirname(rutas)),
     ruta = rutas,
-    device_id = primero_no_na(meta$device_comentario, nombre$device_id, config$device_id),
+    # Con deployment ID, el prefijo del nombre es el del despliegue, no el de la grabadora
+    device_id = primero_no_na(meta$device_comentario, ifelse(meta$despliegue, NA_character_, nombre$device_id),
+                              config$device_id),
     inicio_utc = format(inicio, "%Y-%m-%d %H:%M:%S", tz = "UTC"),
     inicio_local = format(inicio, "%Y-%m-%d %H:%M:%S", tz = zona_horaria),
     fecha_local = format(inicio, "%Y-%m-%d", tz = zona_horaria),
