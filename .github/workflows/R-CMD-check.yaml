@@ -28,9 +28,26 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      # Ejecuta también los tests marcados con skip_on_cran() (informe con Quarto)
+      NOT_CRAN: true
 
     steps:
       - uses: actions/checkout@v6
+
+      # ffmpeg (conversión, vídeos) y Quarto (informe): sin ellos, sus tests se saltan
+      - name: Instalar ffmpeg (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Instalar ffmpeg (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg
+
+      - name: Instalar ffmpeg (Windows)
+        if: runner.os == 'Windows'
+        run: choco install ffmpeg -y --no-progress
+
+      - uses: quarto-dev/quarto-actions/setup@v2
 
       - uses: r-lib/actions/setup-pandoc@v2
 
