@@ -55,3 +55,15 @@ test_that("traduce a IOC los nombres de BirdNET v2.4 que han cambiado", {
   expect_equal(t$ioc, c("Coloeus monedula", "Astur gentilis", "Ardea ibis", "Tachymarptis melba",
                         "Thinornis dubius", "Botaurus minutus", "Pica nuttallii", "Cettia cetti", NA))
 })
+
+test_that("avisa de las especies divididas en IOC, salvo si hay equivalencia propia", {
+  am <- suppressMessages(leer_audiomoth(crear_tarjeta(), coordenadas = "42.361234, -3.779512"))
+  am$detecciones <- detecciones_prueba(am)
+  am$detecciones$nombre_cientifico[am$detecciones$nombre_cientifico == "Cettia cetti"] <- "Cecropis daurica"
+  expect_warning(obs <- suppressMessages(exportar_observation(am, especies = "Cecropis daurica", archivo = tempfile())),
+                 "divididas en IOC")
+  expect_equal(obs$`scientific name`, "Cecropis daurica")
+  expect_no_warning(obs <- suppressMessages(exportar_observation(am, especies = "Cecropis daurica", archivo = tempfile(),
+                                                                 equivalencias = c("Cecropis daurica" = "Cecropis rufula"))))
+  expect_equal(obs$`scientific name`, "Cecropis rufula")
+})

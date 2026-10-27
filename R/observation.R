@@ -117,6 +117,14 @@ exportar_observation <- function(am, confianza_minima = 0.8, min_detecciones = 2
   if (nrow(out)) out <- out[order(out$date, out$time, out$`scientific name`), , drop = FALSE]
   rownames(out) <- NULL
 
+  # Especies divididas en IOC: el nombre exportado puede ser el de otra población
+  div <- setdiff(intersect(names(especies_divididas), out$`scientific name`), names(equivalencias))
+  if (length(div)) {
+    cli::cli_warn(c("Hay especies divididas en IOC cuyo nombre puede no ser el de la poblaci\u00f3n del punto de grabaci\u00f3n:",
+                    stats::setNames(paste0(div, ": ", especies_divididas[div]), rep("*", length(div))),
+                    "i" = "Si es su caso, ind\u00edquelo con {.arg equivalencias}, p. ej. {.code equivalencias = c(\"Cecropis daurica\" = \"Cecropis rufula\")}."))
+  }
+
   archivo <- archivo %||% archivo_salida(am, "observation")
   escribir_csv(out, archivo)
   cli::cli_inform(c("v" = "{nrow(out)} registro{?s} ({length(unique(out$`scientific name`))} especies) para Observation.org en {.file {archivo}}.",
@@ -131,6 +139,14 @@ referencia_externa <- function(x) {
   if (is.na(nombre)) nombre <- tools::file_path_sans_ext(x$archivo)
   sprintf("AudioMoth_%s_%s_%gs", x$device_id, nombre, x$inicio_s)
 }
+
+# Especies de BirdNET cuyo nombre científico en IOC es solo una de las partes en
+# que se ha dividido: el registro puede quedar con la población de otra región
+especies_divididas <- c(
+  "Cecropis daurica" = "en IOC es la poblaci\u00f3n asi\u00e1tica; en Europa, el norte de \u00c1frica y Oriente Medio es Cecropis rufula, y en el \u00c1frica subsahariana, Cecropis melanocrissus",
+  "Calonectris diomedea" = "en IOC es la poblaci\u00f3n del Mediterr\u00e1neo; en el Atl\u00e1ntico (Canarias, Azores) es Calonectris borealis",
+  "Fringilla coelebs" = "en Canarias es Fringilla canariensis; en Madeira, Fringilla maderensis; en Azores, Fringilla moreletti; en el norte de \u00c1frica, Fringilla spodiogenys"
+)
 
 #' Nombre IOC (Observation.org) de cada nombre científico de BirdNET
 #'
