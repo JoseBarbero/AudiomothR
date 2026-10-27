@@ -215,7 +215,15 @@ extraer_ejemplos <- function(am, especies, n = 3, confianza_minima = 0.85, sin_d
   indice <- sel[, c("nombre_cientifico", "nombre_comun", "ejemplo", "confianza", "fecha_local",
                     "hora_local", "zona_horaria", "archivo", "inicio_s", "fin_s", "wav", "png", "mp4")]
   archivo <- file.path(dir_ej, sprintf("AudioMoth_%s_ejemplos.csv", am$config$device_id))
-  escribir_csv(indice, archivo)
+  # Se añaden a los de llamadas anteriores: sin repetir un mismo ejemplo y solo
+  # los que siguen en disco
+  todos <- indice
+  if (file.exists(archivo)) {
+    previo <- leer_csv(archivo)
+    previo <- previo[!previo$wav %in% indice$wav & file.exists(previo$wav), names(indice), drop = FALSE]
+    todos <- rbind(previo, indice)
+  }
+  escribir_csv(todos, archivo)
   cli::cli_inform(c("v" = "{nrow(sel)} ejemplo{?s} de {length(unique(sel$nombre_cientifico))} especie{?s} en {.file {dir_ej}}."))
   invisible(indice)
 }

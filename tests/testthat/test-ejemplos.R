@@ -26,3 +26,16 @@ test_that("el margen no se sale de la grabación", {
   r <- AudiomothR:::recortar_audio(w, -1, 9)
   expect_equal(c(r$desde, r$hasta), c(0, 8))
 })
+
+test_that("el índice de ejemplos acumula las llamadas sucesivas sin repetir", {
+  am <- suppressMessages(leer_audiomoth(crear_tarjeta(), coordenadas = c(42.36, -3.78)))
+  am$detecciones <- detecciones_prueba(am)
+  extraer <- function(esp) suppressWarnings(suppressMessages(
+    extraer_ejemplos(am, esp, n = 1, confianza_minima = 0.5, sin_dudas = FALSE, video = FALSE)))
+  extraer("Cettia cetti")
+  extraer("Turdus merula")
+  extraer("Cettia cetti")                # repetir no duplica
+  indice <- read.csv(file.path(am$salida, "ejemplos", "AudioMoth_2403750567C2A798_ejemplos.csv"))
+  expect_setequal(indice$nombre_cientifico, c("Cettia cetti", "Turdus merula"))
+  expect_equal(nrow(indice), 2)
+})
