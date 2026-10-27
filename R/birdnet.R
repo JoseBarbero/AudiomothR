@@ -32,13 +32,22 @@ preparar_audios <- function(am) {
   convertir <- which(g$valida & (g$frecuencia_muestreo != frecuencia_birdnet | g$canales != 1))
   if (length(convertir)) {
     destino <- file.path(am$salida, "audio_48k", g$carpeta_dia[convertir], g$archivo[convertir])
-    pendientes <- which(!file.exists(destino))
+    # Pendientes: sin convertir o convertidas a medias (duración distinta de la original)
+    hecha <- vapply(seq_along(destino), function(k) {
+      cab <- if (file.exists(destino[k])) leer_cabecera_wav(destino[k])
+      !is.null(cab) && abs(cab$duracion_s - g$duracion_s[convertir[k]]) < 0.1
+    }, logical(1))
+    pendientes <- which(!hecha)
     cli::cli_inform("Convirtiendo {length(convertir)} grabaci{?\u00f3n/ones} a 48 kHz mono ({length(pendientes)} pendiente{?s}).")
     cli::cli_progress_bar("Convirtiendo audios", total = length(pendientes))
     for (k in pendientes) {
       dir.create(dirname(destino[k]), recursive = TRUE, showWarnings = FALSE)
+      # A un temporal que se renombra al terminar: una conversión interrumpida
+      # no se da por buena
+      temporal <- paste0(destino[k], ".part")
       ejecutar_ffmpeg(c("-i", g$ruta[convertir[k]], "-ac", "1", "-ar", frecuencia_birdnet,
-                        "-c:a", "pcm_s16le", destino[k]))
+                        "-c:a", "pcm_s16le", "-f", "wav", temporal))
+      file.rename(temporal, destino[k])
       cli::cli_progress_update()
     }
     cli::cli_progress_done()

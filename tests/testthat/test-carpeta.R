@@ -47,3 +47,14 @@ test_that("convierte a 48 kHz las grabaciones con otra frecuencia", {
   expect_true(all(grepl("audio_48k", am$grabaciones$ruta_birdnet[ok])))
   expect_equal(tuneR::readWave(am$grabaciones$ruta_birdnet[ok][1], header = TRUE)$sample.rate, 48000)
 })
+
+test_that("vuelve a convertir una conversión a 48 kHz que quedó a medias", {
+  skip_if_no_ffmpeg()
+  am <- suppressMessages(leer_audiomoth(crear_tarjeta(fs = 96000), coordenadas = c(42.36, -3.78)))
+  am <- suppressWarnings(suppressMessages(preparar_audios(am)))
+  convertido <- am$grabaciones$ruta_birdnet[!is.na(am$grabaciones$ruta_birdnet)][1]
+  escribir_onda(convertido, duracion = 1)   # como si la conversión se hubiera cortado al primer segundo
+  am <- suppressWarnings(suppressMessages(preparar_audios(am)))
+  expect_equal(tuneR::readWave(convertido, header = TRUE)$samples / 48000, 8)
+  expect_length(list.files(dirname(convertido), "\\.part$"), 0)
+})
