@@ -202,6 +202,22 @@ inventariar_wav <- function(carpeta, config, zona_horaria) {
     problema = problema,
     stringsAsFactors = FALSE
   )
+
+  # Copias de una misma grabación (misma grabadora y hora), p. ej. «... 2.WAV» del
+  # Finder o un conflicto de OneDrive: se queda una, preferiblemente sin sufijo
+  # en el nombre y dentro de su carpeta diaria
+  clave <- paste(grab$device_id, grab$inicio_utc)
+  con_sufijo <- !is.na(nombre$sufijo) & nzchar(nombre$sufijo)
+  en_raiz <- !grepl("/", substring(rutas, nchar(carpeta) + 2), fixed = TRUE)
+  pref <- order(!grab$valida, con_sufijo, en_raiz, grab$archivo)
+  primero <- pref[!duplicated(clave[pref])]
+  dup <- setdiff(which(grab$valida), primero)
+  if (length(dup)) {
+    grab$valida[dup] <- FALSE
+    grab$problema[dup] <- paste("duplicado de", grab$archivo[primero][match(clave[dup], clave[primero])])
+    cli::cli_warn(c("Hay {length(dup)} WAV duplicado{?s} (misma grabadora y hora de inicio): se analiza una sola copia de cada grabaci\u00f3n.",
+                    "i" = "Aparecen como {.val duplicado de ...} en la columna {.field problema} del inventario."))
+  }
   grab[order(grab$inicio_utc, grab$archivo), , drop = FALSE]
 }
 

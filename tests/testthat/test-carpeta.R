@@ -26,6 +26,18 @@ test_that("avisa si las coordenadas quedan lejos de las del CONFIG.TXT", {
   expect_no_warning(suppressMessages(leer_audiomoth(dir, coordenadas = "42.361234, -3.779512")))
 })
 
+test_that("marca como duplicadas las copias de una misma grabación", {
+  dir <- crear_tarjeta()
+  wav <- list.files(dir, "\\.WAV$", recursive = TRUE, full.names = TRUE)[1]
+  file.copy(wav, sub("\\.WAV$", " 2.WAV", wav))   # como «Conservar ambos» del Finder
+  expect_warning(am <- suppressMessages(leer_audiomoth(dir, coordenadas = "42.36, -3.78")), "duplicado")
+  g <- am$grabaciones
+  expect_equal(sum(g$valida), 4)                     # las mismas que sin la copia
+  copia <- g[grepl(" 2.WAV", g$archivo, fixed = TRUE), ]
+  expect_false(copia$valida)
+  expect_equal(copia$problema, paste("duplicado de", basename(wav)))
+})
+
 test_that("convierte a 48 kHz las grabaciones con otra frecuencia", {
   skip_if_no_ffmpeg()
   am <- suppressMessages(leer_audiomoth(crear_tarjeta(fs = 96000), coordenadas = c(42.36, -3.78)))
